@@ -21,3 +21,4 @@ body {
 @utility knopf-zweit { @apply knopf bg-white text-tinte ring-1 ring-stone-300 active:bg-stone-100; }
 @utility eingabe { @apply block min-h-12 w-full rounded-xl border-0 bg-white px-3 text-base ring-1 ring-stone-300 focus:ring-2 focus:ring-marke focus:outline-none; }
 @utility beschriftung { @apply mb-1 block text-sm font-medium text-stone-600; }
+@utility rund-knopf { @apply flex h-10 w-10 items-center justify-center rounded-full text-stone-500 active:bg-stone-200; }

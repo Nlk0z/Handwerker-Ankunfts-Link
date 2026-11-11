@@ -25,6 +25,7 @@ export function fensterZeit(t: string | null | undefined) {
 export function zeitfenster(von?: string | null, bis?: string | null) {
   if (von && bis) return `${fensterZeit(von)}–${fensterZeit(bis)} Uhr`;
   if (von) return `ab ${fensterZeit(von)} Uhr`;
+  if (bis) return `bis ${fensterZeit(bis)} Uhr`;
   return "ganztägig";
 }
 

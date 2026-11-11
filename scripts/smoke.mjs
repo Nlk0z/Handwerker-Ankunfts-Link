@@ -13,6 +13,8 @@ const pruefungen = [
   { pfad: "/app", status: [302, 303, 307, 308], umleitung: true },
   // unbekannter Kundenlink darf nicht abstürzen
   { pfad: "/t/gibtesnicht123", status: [200, 404] },
+  // SMS-Simulation für die iPhone-Vorschau (im Demo-Modus 200, sonst 404)
+  { pfad: "/api/demo/sms", status: [200, 404] },
 ];
 
 let fehler = 0;

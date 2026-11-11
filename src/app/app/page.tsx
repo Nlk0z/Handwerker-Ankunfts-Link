@@ -3,6 +3,7 @@ import { nutzerOderLogin } from "@/lib/auth";
 import { auftraegeAmTag } from "@/lib/auftraege";
 import { datumKurz, heute, uhrzeit, zeitfenster } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,9 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Link href={`/app?datum=${tagVerschieben(datum, -1)}`} className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Vorheriger Tag">‹</Link>
+        <Link href={`/app?datum=${tagVerschieben(datum, -1)}`} className="rund-knopf" aria-label="Vorheriger Tag">
+          <Icon name="zurueck" className="h-6 w-6" />
+        </Link>
         <div className="text-center">
           <h1 className="text-xl font-bold">{istHeute ? "Heute" : datumKurz(datum)}</h1>
           <p className="text-sm text-stone-500">
@@ -30,7 +33,9 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
             {auftraege.length} {auftraege.length === 1 ? "Auftrag" : "Aufträge"}
           </p>
         </div>
-        <Link href={`/app?datum=${tagVerschieben(datum, 1)}`} className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Nächster Tag">›</Link>
+        <Link href={`/app?datum=${tagVerschieben(datum, 1)}`} className="rund-knopf" aria-label="Nächster Tag">
+          <Icon name="weiter" className="h-6 w-6" />
+        </Link>
       </div>
 
       {auftraege.length === 0 && (
@@ -48,21 +53,22 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
                 </div>
                 <StatusBadge status={a.status} />
               </div>
-              <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="font-medium text-stone-700">🕗 {zeitfenster(a.fenster_von, a.fenster_bis)}</span>
-                {a.status === "unterwegs" && a.eta ? (
-                  <span className="font-semibold text-orange-700">Ankunft ca. {uhrzeit(a.eta)}</span>
-                ) : (
-                  <span className="text-stone-500">{a.mitarbeiter_name}</span>
-                )}
+              <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                <span className="flex items-center gap-1.5 font-medium text-stone-700">
+                  <Icon name="uhr" className="h-4 w-4 text-stone-400" />
+                  {a.status === "unterwegs" && a.eta ? `Ankunft ca. ${uhrzeit(a.eta)} Uhr` : zeitfenster(a.fenster_von, a.fenster_bis)}
+                </span>
+                <span className="truncate text-stone-500">{a.mitarbeiter_name}</span>
               </div>
             </Link>
           </li>
         ))}
       </ul>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-lg px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 bg-gradient-to-t from-stone-100 via-stone-100/90">
-        <Link href={`/app/neu?datum=${datum}`} className="knopf-haupt text-lg">＋ Neuer Auftrag</Link>
+      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-lg bg-gradient-to-t from-stone-100 via-stone-100/90 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+        <Link href={`/app/neu?datum=${datum}`} className="knopf-haupt text-lg">
+          <Icon name="plus" /> Neuer Auftrag
+        </Link>
       </div>
     </div>
   );

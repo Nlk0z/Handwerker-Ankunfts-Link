@@ -24,6 +24,9 @@ export async function auftragAnlegen(fd: FormData) {
   if (!text(fd, "name") || !telefon || !/^\d{4}-\d{2}-\d{2}$/.test(datum)) {
     redirect(`/app/neu?fehler=${telefon ? "felder" : "telefon"}`);
   }
+  const von = text(fd, "von") || null;
+  const bis = text(fd, "bis") || null;
+  if (von && bis && bis <= von) redirect(`/app/neu?datum=${datum}&fehler=zeit`);
   // Mitarbeiter muss zum eigenen Betrieb gehören
   let mitarbeiterId = text(fd, "mitarbeiter") || n.id;
   const passt = await eins(`SELECT 1 FROM mitarbeiter WHERE id = $1 AND betrieb_id = $2`, [mitarbeiterId, n.betrieb_id]);
@@ -40,8 +43,8 @@ export async function auftragAnlegen(fd: FormData) {
       telefon,
       text(fd, "adresse") || null,
       datum,
-      text(fd, "von") || null,
-      text(fd, "bis") || null,
+      von,
+      bis,
       text(fd, "notiz") || null,
       neuerToken(),
       gueltigBis(datum),
@@ -79,6 +82,7 @@ export async function einstellungenSpeichern(fd: FormData) {
   const n = await nutzerOderLogin();
   if (n.rolle !== "inhaber") redirect("/app/einstellungen");
   const telefon = text(fd, "telefon") ? normalisiereTelefon(text(fd, "telefon")) : null;
+  if (text(fd, "telefon") && !telefon) redirect("/app/einstellungen?fehler=telefon");
   await query(
     `UPDATE betrieb SET name = $2, telefon = $3, sms_absender = $4, karte_aktiv = $5 WHERE id = $1`,
     [

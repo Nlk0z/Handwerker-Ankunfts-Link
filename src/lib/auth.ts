@@ -27,7 +27,9 @@ export async function passwortPruefen(passwort: string, gespeichert: string) {
   const [saltHex, hashHex] = gespeichert.split(":");
   if (!saltHex || !hashHex) return false;
   const hash = await scrypt(passwort, Buffer.from(saltHex, "hex"), 64);
-  return timingSafeEqual(hash, Buffer.from(hashHex, "hex"));
+  const soll = Buffer.from(hashHex, "hex");
+  // timingSafeEqual stürzt bei unterschiedlicher Länge ab (z. B. kaputter Eintrag) – dann einfach "falsch".
+  return soll.length === hash.length && timingSafeEqual(hash, soll);
 }
 
 export async function anmelden(mitarbeiterId: string) {

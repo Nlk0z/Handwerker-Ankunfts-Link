@@ -17,6 +17,7 @@ async function registrieren(formData: FormData) {
   if (await eins(`SELECT 1 FROM mitarbeiter WHERE lower(email) = $1`, [email])) redirect("/registrieren?fehler=email");
 
   const telefon = f("telefon") ? normalisiereTelefon(f("telefon")) : null;
+  if (f("telefon") && !telefon) redirect("/registrieren?fehler=telefon");
   const b = await eins<{ id: string }>(
     `INSERT INTO betrieb (name, telefon, sms_absender) VALUES ($1, $2, $3) RETURNING id`,
     [f("betrieb"), telefon, f("betrieb").replace(/[^A-Za-z0-9]/g, "").slice(0, 11)],
@@ -34,6 +35,7 @@ const FEHLER: Record<string, string> = {
   felder: "Bitte alle Pflichtfelder ausfüllen.",
   passwort: "Das Passwort muss mindestens 8 Zeichen haben.",
   email: "Diese E-Mail ist schon registriert.",
+  telefon: "Die Telefonnummer sieht nicht richtig aus (z. B. 09171 123456).",
 };
 
 export default async function Registrieren({ searchParams }: { searchParams: Promise<{ fehler?: string }> }) {

@@ -137,15 +137,22 @@ export async function verspaetung(betriebId: string, id: string, minutenAbJetzt:
   await smsZumAuftrag(auftrag, "verspaetung", link);
 }
 
+/** Welche Schritte von welchem Stand aus erlaubt sind (verhindert z. B. Doppeltippen oder veraltete Seiten). */
+const ERLAUBT_VON: Record<"angekommen" | "erledigt" | "storniert", Status[]> = {
+  angekommen: ["geplant", "unterwegs"],
+  erledigt: ["geplant", "unterwegs", "angekommen"],
+  storniert: ["geplant", "unterwegs"],
+};
+
 export async function statusSetzen(betriebId: string, id: string, status: "angekommen" | "erledigt" | "storniert") {
   const extra = status === "angekommen" ? ", angekommen_am = now()" : "";
   // Nach Abschluss läuft der Kundenlink noch 2 Stunden, danach ist er ungültig.
   const ablauf = status !== "angekommen" ? ", link_gueltig_bis = LEAST(link_gueltig_bis, now() + interval '2 hours')" : "";
-  await query(`UPDATE auftrag SET status = $3 ${extra} ${ablauf} WHERE betrieb_id = $1 AND id = $2`, [
-    betriebId,
-    id,
-    status,
-  ]);
+  await query(
+    `UPDATE auftrag SET status = $3 ${extra} ${ablauf}
+      WHERE betrieb_id = $1 AND id = $2 AND status IN (${ERLAUBT_VON[status].map((s) => `'${s}'`).join(", ")})`,
+    [betriebId, id, status],
+  );
 }
 
 /**

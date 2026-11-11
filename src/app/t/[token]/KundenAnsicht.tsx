@@ -1,10 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { KundenDaten } from "@/lib/kundensicht";
-import { datumKurz, heute, initialen, telefonAnzeige, uhrzeit, zeitfenster } from "@/lib/format";
+import { datumKurz, heute, initialen, uhrzeit, zeitfenster } from "@/lib/format";
 import { Logo } from "@/components/Logo";
+import { Icon } from "@/components/Icon";
 
 const Karte = dynamic(() => import("./Karte"), {
   ssr: false,
@@ -17,17 +18,29 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
   const [d, setD] = useState<Daten>(start);
   const [jetzt, setJetzt] = useState(() => Date.now());
 
+  const status = useRef(start.gueltig ? start.status : null);
+  status.current = d.gueltig ? d.status : null;
+
   useEffect(() => {
-    const laden = () =>
-      fetch(`/api/t/${token}`, { cache: "no-store" })
-        .then((r) => r.json())
-        .then(setD)
-        .catch(() => {});
-    const t1 = setInterval(laden, 20_000);
+    let aus = false;
+    const laden = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const r = await fetch(`/api/t/${token}`, { cache: "no-store" });
+        if (!r.ok) return; // Serverfehler: alten Stand behalten statt "Link ungültig" zu zeigen
+        const neu = (await r.json()) as Daten;
+        if (!aus) setD(neu);
+      } catch {}
+    };
+    // Solange etwas passiert alle 5 Sekunden nachsehen, danach seltener.
+    let zaehler = 0;
+    const t1 = setInterval(() => {
+      const aktiv = status.current === "geplant" || status.current === "unterwegs" || status.current === "angekommen";
+      if (aktiv || ++zaehler % 6 === 0) laden();
+    }, 5_000);
     const t2 = setInterval(() => setJetzt(Date.now()), 15_000);
-    const sichtbar = () => document.visibilityState === "visible" && laden();
-    document.addEventListener("visibilitychange", sichtbar);
-    return () => { clearInterval(t1); clearInterval(t2); document.removeEventListener("visibilitychange", sichtbar); };
+    document.addEventListener("visibilitychange", laden);
+    return () => { aus = true; clearInterval(t1); clearInterval(t2); document.removeEventListener("visibilitychange", laden); };
   }, [token]);
 
   if (!d.gueltig) {
@@ -77,13 +90,13 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
         )}
         {d.status === "angekommen" && (
           <>
-            <p className="text-5xl">👋</p>
+            <Kreis farbe="bg-green-600"><Icon name="standort" className="h-8 w-8" /></Kreis>
             <p className="mt-2 text-2xl font-bold">{wer} ist da</p>
           </>
         )}
         {d.status === "erledigt" && (
           <>
-            <p className="text-5xl">✅</p>
+            <Kreis farbe="bg-stone-800"><Icon name="haken" className="h-8 w-8" /></Kreis>
             <p className="mt-2 text-2xl font-bold">Auftrag erledigt</p>
             <p className="mt-1 text-stone-600">Vielen Dank für Ihr Vertrauen!</p>
           </>
@@ -101,14 +114,18 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
       )}
 
       {d.betriebTelefon && d.status !== "erledigt" && (
-        <a href={`tel:${d.betriebTelefon}`} className="knopf-zweit">📞 {d.betrieb} anrufen ({telefonAnzeige(d.betriebTelefon)})</a>
+        <a href={`tel:${d.betriebTelefon}`} className="knopf-zweit">
+          <Icon name="telefon" /> {d.betrieb} anrufen
+        </a>
       )}
 
-      <footer className="pt-4 text-center text-xs text-stone-400">
-        Kein App-Download nötig · Diese Seite aktualisiert sich von selbst
-      </footer>
+      <footer className="pt-4 text-center text-xs text-stone-400">Diese Seite aktualisiert sich von selbst</footer>
     </main>
   );
+}
+
+function Kreis({ farbe, children }: { farbe: string; children: React.ReactNode }) {
+  return <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full text-white ${farbe}`}>{children}</div>;
 }
 
 function Fortschritt({ status }: { status: KundenDaten["status"] }) {

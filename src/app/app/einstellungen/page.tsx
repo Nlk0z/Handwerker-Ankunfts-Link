@@ -1,17 +1,19 @@
 import { nutzerOderLogin } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
 import { telefonAnzeige } from "@/lib/format";
+import { Icon } from "@/components/Icon";
 import { abmeldenAktion, einstellungenSpeichern, mitarbeiterAnlegen } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 const MELDUNG: Record<string, string> = {
-  "1": "Gespeichert ✓",
-  mitarbeiter: "Mitarbeiter angelegt ✓",
+  "1": "Gespeichert",
+  mitarbeiter: "Mitarbeiter angelegt",
 };
 const FEHLER: Record<string, string> = {
   mitarbeiter: "Bitte Name, E-Mail und ein Passwort mit mind. 8 Zeichen angeben.",
   email: "Diese E-Mail ist schon vergeben.",
+  telefon: "Die Telefonnummer sieht nicht richtig aus (z. B. 09171 123456).",
 };
 
 export default async function Einstellungen({ searchParams }: { searchParams: Promise<{ ok?: string; fehler?: string }> }) {
@@ -30,7 +32,7 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Einstellungen</h1>
-      {ok && <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-800 ring-1 ring-green-200">{MELDUNG[ok]}</p>}
+      {ok && <p className="flex items-center gap-2 rounded-xl bg-green-50 p-3 text-sm font-medium text-green-800 ring-1 ring-green-200"><Icon name="haken" className="h-4 w-4" /> {MELDUNG[ok]}</p>}
       {fehler && <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{FEHLER[fehler]}</p>}
 
       <form action={einstellungenSpeichern} className="karte space-y-4">
@@ -75,7 +77,7 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
         </ul>
         {chef && (
           <details className="rounded-xl bg-stone-50 p-3">
-            <summary className="cursor-pointer font-medium text-marke">＋ Mitarbeiter hinzufügen</summary>
+            <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-marke"><Icon name="plus" className="h-4 w-4" /> Mitarbeiter hinzufügen</summary>
             <form action={mitarbeiterAnlegen} className="mt-3 space-y-3">
               <input className="eingabe" name="name" placeholder="Name" required />
               <input className="eingabe" name="email" type="email" placeholder="E-Mail" required />

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { nutzerOderLogin } from "@/lib/auth";
+import { eins } from "@/lib/db";
 import { auftragLaden, basisUrl, benachrichtigungen } from "@/lib/auftraege";
 import { datumKurz, telefonAnzeige, uhrzeit, zeitfenster } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Icon } from "@/components/Icon";
 import { Steuerung } from "./Steuerung";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +20,14 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
   if (!a) notFound();
   const sms = await benachrichtigungen(a.id);
   const link = `${await basisUrl()}/t/${a.link_token}`;
+  const b = await eins<{ karte_aktiv: boolean }>(`SELECT karte_aktiv FROM betrieb WHERE id = $1`, [n.betrieb_id]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Link href={`/app?datum=${a.termin_datum}`} className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Zurück">‹</Link>
+        <Link href={`/app?datum=${a.termin_datum}`} className="rund-knopf -ml-2" aria-label="Zurück">
+          <Icon name="zurueck" className="h-6 w-6" />
+        </Link>
         <h1 className="min-w-0 flex-1 truncate text-xl font-bold">{a.kunde_name}</h1>
         <StatusBadge status={a.status} />
       </div>
@@ -42,11 +47,11 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
         {a.notiz && <Zeile label="Notiz">{a.notiz}</Zeile>}
       </div>
 
-      <Steuerung id={a.id} status={a.status} link={link} />
+      <Steuerung id={a.id} status={a.status} link={link} karteAktiv={b?.karte_aktiv ?? false} />
 
       {sms.length > 0 && (
         <section className="space-y-2">
-          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">Nachrichten an den Kunden</h2>
+          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">SMS an den Kunden</h2>
           {sms.map((s) => (
             <div key={s.id} className="karte space-y-1 text-sm">
               <div className="flex items-center justify-between text-xs text-stone-500">

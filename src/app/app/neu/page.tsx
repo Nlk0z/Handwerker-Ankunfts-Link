@@ -3,12 +3,14 @@ import { nutzerOderLogin } from "@/lib/auth";
 import { query } from "@/lib/db";
 import { heute } from "@/lib/format";
 import { auftragAnlegen } from "../actions";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
 const FEHLER: Record<string, string> = {
   telefon: "Die Handynummer sieht nicht richtig aus (z. B. 0171 1234567).",
   felder: "Bitte Name, Handynummer und Datum ausfüllen.",
+  zeit: "Das Zeitfenster passt nicht: „bis“ muss nach „von“ liegen.",
 };
 
 export default async function NeuerAuftrag({ searchParams }: { searchParams: Promise<{ datum?: string; fehler?: string }> }) {
@@ -22,7 +24,9 @@ export default async function NeuerAuftrag({ searchParams }: { searchParams: Pro
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Link href="/app" className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Zurück">‹</Link>
+        <Link href={`/app${datum ? `?datum=${datum}` : ""}`} className="rund-knopf -ml-2" aria-label="Zurück">
+          <Icon name="zurueck" className="h-6 w-6" />
+        </Link>
         <h1 className="text-xl font-bold">Neuer Auftrag</h1>
       </div>
 
