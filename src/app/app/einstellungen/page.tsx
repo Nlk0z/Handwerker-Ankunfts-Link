@@ -3,8 +3,6 @@ import { eins, query } from "@/lib/db";
 import { telefonAnzeige } from "@/lib/format";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
-import { Sterne } from "@/components/Sterne";
-import { datumKurz } from "@/lib/format";
 import type { SmsVorlagen } from "@/lib/smsTexte";
 import { SmsTexte } from "./SmsTexte";
 import { abmeldenAktion, einstellungenSpeichern, mitarbeiterAnlegen } from "../actions";
@@ -33,13 +31,6 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
     `SELECT name, telefon, sms_absender, karte_aktiv, website, bewertung_link, sms_vorlagen FROM betrieb WHERE id = $1`,
     [n.betrieb_id],
   );
-  const bewertungen = await query<{ id: string; sterne: number; text: string | null; kunde_name: string; termin_datum: string }>(
-    `SELECT bw.id, bw.sterne, bw.text, a.kunde_name, a.termin_datum::text AS termin_datum
-       FROM bewertung bw JOIN auftrag a ON a.id = bw.auftrag_id
-      WHERE a.betrieb_id = $1 ORDER BY bw.erstellt_am DESC LIMIT 20`,
-    [n.betrieb_id],
-  );
-  const schnitt = bewertungen.length ? bewertungen.reduce((x, r) => x + r.sterne, 0) / bewertungen.length : 0;
   const team = await query<{ id: string; name: string; email: string; rolle: string }>(
     `SELECT id, name, email, rolle FROM mitarbeiter WHERE betrieb_id = $1 ORDER BY rolle, name`,
     [n.betrieb_id],
@@ -97,32 +88,10 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
         <SmsTexte vorlagen={b?.sms_vorlagen ?? {}} betrieb={b?.name ?? ""} darf={chef} />
       </section>
 
-      <section className="karte space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Bewertungen</h2>
-          {bewertungen.length > 0 && (
-            <span className="flex items-center gap-2 text-sm text-stone-600">
-              <Sterne anzahl={Math.round(schnitt)} /> {schnitt.toLocaleString("de-DE", { maximumFractionDigits: 1 })} ({bewertungen.length})
-            </span>
-          )}
-        </div>
-        {bewertungen.length === 0 ? (
-          <p className="text-sm text-stone-500">Noch keine Bewertungen. Kunden können nach „Auftrag erledigt“ über ihren Link bewerten.</p>
-        ) : (
-          <ul className="divide-y divide-stone-100">
-            {bewertungen.map((r) => (
-              <li key={r.id} className="space-y-1 py-2">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="truncate font-medium">{r.kunde_name}</span>
-                  <span className="shrink-0 text-xs text-stone-500">{datumKurz(r.termin_datum)}</span>
-                </div>
-                <Sterne anzahl={r.sterne} />
-                {r.text && <p className="whitespace-pre-wrap break-words text-sm text-stone-700">„{r.text}“</p>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <Link href="/app/auswertung#bewertungen" className="karte flex items-center justify-between font-semibold">
+        <span className="flex items-center gap-2"><Icon name="stern" className="h-5 w-5 text-amber-500" /> Bewertungen und Auswertung</span>
+        <Icon name="weiter" className="h-5 w-5 text-stone-400" />
+      </Link>
 
       <section className="karte space-y-3">
         <h2 className="font-semibold">Team</h2>

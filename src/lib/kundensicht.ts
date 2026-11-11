@@ -68,3 +68,13 @@ export async function bewertungSpeichern(token: string, sterne: number, text: st
   );
   return true;
 }
+
+/** Zählt, dass der Kunde seine Seite geöffnet hat (nur echte Seitenaufrufe, nicht das Nachladen). */
+export async function aufrufZaehlen(token: string) {
+  if (!/^[A-Za-z0-9_-]{10,40}$/.test(token)) return;
+  await query(
+    `UPDATE auftrag SET link_aufrufe = link_aufrufe + 1, link_erster_aufruf = COALESCE(link_erster_aufruf, now())
+      WHERE link_token = $1 AND link_gueltig_bis > now()`,
+    [token],
+  );
+}

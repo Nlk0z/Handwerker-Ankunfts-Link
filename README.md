@@ -40,7 +40,7 @@ Zwei iPhones nebeneinander: links die Handwerker-App, rechts das Handy des Kunde
 - **Angekommen**: SMS „ist jetzt da“
 - **Erledigt**: Danke-SMS; auf der Kundenseite kann der Kunde mit Sternen bewerten und sieht die Website des Betriebs (optional Link zu Google-Bewertungen). Der Link bleibt danach 7 Tage gültig
 - **SMS-Texte** in den Einstellungen selbst schreiben, mit Platzhaltern (`{kunde}`, `{monteur}`, `{betrieb}`, `{uhrzeit}`, `{link}`) und Vorschau; „Gleich da“, „Angekommen“ und „Danke“ lassen sich abschalten
-- **Bewertungen** sieht der Betrieb im Auftrag und gesammelt in den Einstellungen
+- **Auswertung** (Diagramm-Symbol oben): gesparte Rückfrage-Anrufe (Schätzung), wie viele Kunden den Link öffnen, Pünktlichkeit, verschickte SMS und alle Bewertungen mit Text, für 7/30/90 Tage. In der Demo mit Beispiel-Historie der letzten 60 Tage
 - Kundenseite aktualisiert sich selbst, mit Live-Karte (im Betrieb abschaltbar) und Anruf-Knopf
 - Als Web-App zum Home-Bildschirm hinzufügbar
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { istDemo, query } from "@/lib/db";
+import { heute } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +14,10 @@ export async function GET() {
        FROM benachrichtigung n
        JOIN auftrag a ON a.id = n.auftrag_id
        JOIN betrieb b ON b.id = a.betrieb_id
+      WHERE a.termin_datum = $1 -- nur heute (die Beispiel-Historie der Auswertung nicht aufs Handy)
       ORDER BY n.gesendet_am DESC
       LIMIT 30`,
+    [heute()],
   );
   return NextResponse.json(
     sms.reverse().map((s) => ({ ...s, gesendet_am: new Date(s.gesendet_am).toISOString() })),

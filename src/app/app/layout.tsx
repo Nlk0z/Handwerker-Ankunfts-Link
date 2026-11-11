@@ -18,9 +18,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="text-xs text-stone-500">{nutzer.name}</div>
           </div>
         </Link>
-        <Link href="/app/einstellungen" className="rounded-full p-2 text-stone-600 active:bg-stone-100" aria-label="Einstellungen">
-          <Icon name="zahnrad" className="h-6 w-6" />
-        </Link>
+        <nav className="flex items-center gap-1">
+          <Link href="/app/auswertung" className="rounded-full p-2 text-stone-600 active:bg-stone-100" aria-label="Auswertung und Bewertungen">
+            <Icon name="diagramm" className="h-6 w-6" />
+          </Link>
+          <Link href="/app/einstellungen" className="rounded-full p-2 text-stone-600 active:bg-stone-100" aria-label="Einstellungen">
+            <Icon name="zahnrad" className="h-6 w-6" />
+          </Link>
+        </nav>
       </header>
       {istDemo() && (
         <div className="bg-amber-100 px-4 py-1.5 text-center text-xs font-medium text-amber-900">

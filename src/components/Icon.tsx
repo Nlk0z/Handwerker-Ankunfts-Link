@@ -46,6 +46,7 @@ const PFADE = {
     </>
   ),
   nachricht: <path d="M4.5 5.5h15v10h-9l-4 3.5v-3.5h-2z" />,
+  diagramm: <path d="M4 20h16M7 16v-5M12 16V6M17 16v-8" />,
   stern: <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />,
   welt: (
     <>

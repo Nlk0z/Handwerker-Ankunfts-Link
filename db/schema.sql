@@ -91,3 +91,7 @@ CREATE TABLE IF NOT EXISTS bewertung (
   text         text,
   erstellt_am  timestamptz NOT NULL DEFAULT now()
 );
+
+-- Wie oft der Kunde seinen Link geöffnet hat (für die Auswertung)
+ALTER TABLE auftrag ADD COLUMN IF NOT EXISTS link_aufrufe integer NOT NULL DEFAULT 0;
+ALTER TABLE auftrag ADD COLUMN IF NOT EXISTS link_erster_aufruf timestamptz;
