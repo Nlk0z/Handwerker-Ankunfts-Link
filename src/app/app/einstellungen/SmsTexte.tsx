@@ -8,6 +8,7 @@ import {
   SMS_TYPEN,
   smsAnzahl,
   smsFuellen,
+  teureZeichen,
   vorlage,
   type SmsTyp,
   type SmsVorlagen,
@@ -15,14 +16,14 @@ import {
 import { smsVorlagenSpeichern } from "../actions";
 
 /** SMS-Texte bearbeiten, mit Vorschau wie beim Kunden. */
-export function SmsTexte({ vorlagen, betrieb, darf }: { vorlagen: SmsVorlagen; betrieb: string; darf: boolean }) {
+export function SmsTexte({ vorlagen, betrieb, darf, basis }: { vorlagen: SmsVorlagen; betrieb: string; darf: boolean; basis: string }) {
   const [texte, setTexte] = useState(() =>
     Object.fromEntries(SMS_TYPEN.map((t) => [t, vorlage(vorlagen, t).text])) as Record<SmsTyp, string>,
   );
   const [aktiv, setAktiv] = useState(() =>
     Object.fromEntries(SMS_TYPEN.map((t) => [t, vorlage(vorlagen, t).aktiv])) as Record<SmsTyp, boolean>,
   );
-  const beispiel = { kunde: "Familie Schneider", monteur: "Thomas Maier", betrieb, uhrzeit: "14:30", link: "https://kommt-gleich.de/t/Ab3xY9kQ2mPz7LwR" };
+  const beispiel = { kunde: "Familie Schneider", monteur: "Thomas Maier", betrieb, uhrzeit: "14:30", link: `${basis}/t/Ab3xY9kQ2mPz7LwR` }; // echte Länge des Links
 
   return (
     <form action={smsVorlagenSpeichern} className="space-y-4">
@@ -43,6 +44,7 @@ export function SmsTexte({ vorlagen, betrieb, darf }: { vorlagen: SmsVorlagen; b
           const info = SMS_INFO[typ];
           const vorschau = smsFuellen(texte[typ], typ, beispiel);
           const anzahl = smsAnzahl(vorschau);
+          const sonder = teureZeichen(vorschau);
           return (
             <div key={typ} className={`space-y-2 rounded-xl p-3 ring-1 ring-stone-200 ${aktiv[typ] ? "" : "opacity-60"}`}>
               <div className="flex items-start justify-between gap-3">
@@ -75,10 +77,26 @@ export function SmsTexte({ vorlagen, betrieb, darf }: { vorlagen: SmsVorlagen; b
               <div className="rounded-xl bg-stone-100 p-3 text-sm">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-stone-500">So kommt es an</p>
                 <p className="break-words">{vorschau}</p>
-                <p className={`mt-1 text-xs ${anzahl > 1 ? "text-amber-700" : "text-stone-500"}`}>
-                  {vorschau.length} Zeichen · {anzahl === 1 ? "1 SMS" : `${anzahl} SMS (kostet ${anzahl}×)`}
+                <p className="mt-1 text-xs text-stone-500">
+                  {[...vorschau].length} Zeichen (max. {sonder.length ? 70 : 160} pro SMS) · {anzahl === 1 ? "1 SMS" : `${anzahl} SMS`}
                 </p>
               </div>
+              {anzahl > 1 && (
+                <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">
+                  <p className="font-semibold">Achtung: Dieser Text kostet {anzahl} SMS pro Kunde.</p>
+                  {sonder.length > 0 ? (
+                    <p className="mt-1">
+                      Diese Zeichen machen die SMS teurer (dann nur 70 statt 160 Zeichen):{" "}
+                      {sonder.map((z) => (
+                        <code key={z} className="mx-0.5 rounded bg-white px-1.5 py-0.5 font-mono ring-1 ring-amber-200">{z}</code>
+                      ))}
+                      . Ersetzen Sie sie z. B. durch normale Anführungszeichen oder einen Bindestrich.
+                    </p>
+                  ) : (
+                    <p className="mt-1">Kürzen Sie den Text auf höchstens 160 Zeichen (mit Link), dann ist es 1 SMS. Namen und Link sind dabei schon mitgezählt.</p>
+                  )}
+                </div>
+              )}
               {texte[typ] !== SMS_STANDARD[typ] && (
                 <button type="button" className="text-sm font-medium text-marke" onClick={() => setTexte({ ...texte, [typ]: SMS_STANDARD[typ] })}>
                   Standardtext wiederherstellen

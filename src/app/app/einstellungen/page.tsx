@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import type { SmsVorlagen } from "@/lib/smsTexte";
 import { SmsTexte } from "./SmsTexte";
+import { basisUrl } from "@/lib/auftraege";
 import { AbsenderFeld } from "./AbsenderFeld";
 import { abmeldenAktion, einstellungenSpeichern, mitarbeiterAnlegen } from "../actions";
 
@@ -91,7 +92,7 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
 
       <section id="sms" className="karte space-y-3">
         <h2 className="font-semibold">SMS-Texte</h2>
-        <SmsTexte vorlagen={b?.sms_vorlagen ?? {}} betrieb={b?.name ?? ""} darf={chef} />
+        <SmsTexte vorlagen={b?.sms_vorlagen ?? {}} betrieb={b?.name ?? ""} darf={chef} basis={await basisUrl()} />
       </section>
 
       <Link href="/app/auswertung#bewertungen" className="karte flex items-center justify-between font-semibold">

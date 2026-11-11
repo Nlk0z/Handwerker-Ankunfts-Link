@@ -1,6 +1,8 @@
 import "server-only";
 import { eins, query } from "./db";
-import { heute } from "./format";
+import { heute, ZONE } from "./format";
+import { smsAnzahl } from "./smsTexte";
+import { tarif, EXTRA_SMS_CENT } from "./tarife";
 
 /** Annahmen für die Schätzung „gesparte Anrufe“ – bewusst vorsichtig, steht so auch in der App. */
 export const ANNAHME = { anrufQuote: 1 / 3, minutenProAnruf: 4 };
@@ -85,5 +87,38 @@ export async function auswertung(betriebId: string, tage: number): Promise<Auswe
     schnitt: bewertungen.length ? bewertungen.reduce((a, b) => a + b.sterne, 0) / bewertungen.length : null,
     gesparteAnrufe,
     gesparteMinuten: gesparteAnrufe * ANNAHME.minutenProAnruf,
+  };
+}
+
+export type SmsMonat = {
+  monat: string; // z. B. "November"
+  verbraucht: number; // SMS-Teile (eine lange SMS zählt doppelt)
+  kontingent: number;
+  paket: string;
+  preis: number;
+  extra: number; // SMS über dem Kontingent
+  extraEuro: number;
+};
+
+/** SMS-Verbrauch im laufenden Kalendermonat (deutsche Zeit) gegen das Paket-Kontingent. */
+export async function smsMonat(betriebId: string): Promise<SmsMonat> {
+  const b = await eins<{ tarif: string }>(`SELECT tarif FROM betrieb WHERE id = $1`, [betriebId]);
+  const t = tarif(b?.tarif);
+  const zeilen = await query<{ text: string }>(
+    `SELECT n.text FROM benachrichtigung n JOIN auftrag a ON a.id = n.auftrag_id
+      WHERE a.betrieb_id = $1 AND n.status <> 'fehler'
+        AND n.gesendet_am >= (date_trunc('month', now() AT TIME ZONE '${ZONE}') AT TIME ZONE '${ZONE}')`,
+    [betriebId],
+  );
+  const verbraucht = zeilen.reduce((n, z) => n + smsAnzahl(z.text), 0);
+  const extra = Math.max(0, verbraucht - t.sms);
+  return {
+    monat: new Intl.DateTimeFormat("de-DE", { timeZone: ZONE, month: "long" }).format(new Date()),
+    verbraucht,
+    kontingent: t.sms,
+    paket: t.name,
+    preis: t.preis,
+    extra,
+    extraEuro: (extra * EXTRA_SMS_CENT) / 100,
   };
 }

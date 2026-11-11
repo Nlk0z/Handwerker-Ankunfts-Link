@@ -36,6 +36,8 @@ export async function seedDemo(query: Query) {
     );
   }
 
+  // Demo läuft im Paket "Team"
+  await query(`UPDATE betrieb SET tarif = 'team' WHERE id = $1 AND tarif = 'test'`, [chef!.betrieb_id]);
   // Alter Demo-Absender war abgeschnitten ("ElektroMaie")
   await query(`UPDATE betrieb SET sms_absender = 'Maier' WHERE id = $1 AND sms_absender = 'ElektroMaie'`, [chef!.betrieb_id]);
   // Demo: Beispiel-Website, damit die Kundenseite nach "erledigt" den Website-Knopf zeigt

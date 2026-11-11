@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { nutzerOderLogin } from "@/lib/auth";
-import { ANNAHME, auswertung } from "@/lib/auswertung";
+import { ANNAHME, auswertung, smsMonat } from "@/lib/auswertung";
+import { EXTRA_SMS_CENT } from "@/lib/tarife";
 import { datumKurz } from "@/lib/format";
 import { Icon } from "@/components/Icon";
 import { Sterne } from "@/components/Sterne";
@@ -16,6 +17,8 @@ export default async function AuswertungSeite({ searchParams }: { searchParams: 
   const { tage: t, nurText } = await searchParams;
   const tage = ZEITRAEUME.find((z) => String(z) === t) ?? 30;
   const a = await auswertung(n.betrieb_id, tage);
+  const m = await smsMonat(n.betrieb_id);
+  const anteil = m.kontingent ? m.verbraucht / m.kontingent : 0;
   const liste = nurText ? a.bewertungen.filter((b) => b.text) : a.bewertungen;
   const maxVerteilung = Math.max(1, ...a.verteilung);
   const stunden = a.gesparteMinuten / 60;
@@ -28,6 +31,29 @@ export default async function AuswertungSeite({ searchParams }: { searchParams: 
         </Link>
         <h1 className="text-xl font-bold">Auswertung</h1>
       </div>
+
+      {/* SMS-Kontingent im laufenden Monat */}
+      <section className="karte space-y-2">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-semibold text-stone-600">SMS im {m.monat}</p>
+          <p className="text-xs text-stone-500">Paket {m.paket}{m.preis ? ` · ${m.preis} €/Monat` : ""}</p>
+        </div>
+        <p className="text-2xl font-extrabold tabular-nums">
+          {zahl(m.verbraucht)} <span className="text-base font-semibold text-stone-500">von {zahl(m.kontingent)}</span>
+        </p>
+        <div className="h-2.5 overflow-hidden rounded-full bg-stone-100" role="progressbar" aria-valuemin={0} aria-valuemax={m.kontingent} aria-valuenow={m.verbraucht} aria-label="Verbrauchte SMS">
+          <div className={`h-full rounded-full ${anteil >= 1 ? "bg-red-600" : anteil >= 0.8 ? "bg-amber-500" : "bg-marke"}`} style={{ width: `${Math.min(100, anteil * 100)}%` }} />
+        </div>
+        {m.extra > 0 ? (
+          <p className="text-sm font-medium text-red-700">
+            {zahl(m.extra)} SMS über dem Kontingent – je {EXTRA_SMS_CENT} Cent, zusammen {m.extraEuro.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}.
+          </p>
+        ) : anteil >= 0.8 ? (
+          <p className="text-sm font-medium text-amber-800">Bald aufgebraucht: noch {zahl(m.kontingent - m.verbraucht)} SMS in diesem Monat.</p>
+        ) : (
+          <p className="text-xs text-stone-500">Noch {zahl(m.kontingent - m.verbraucht)} SMS frei. Lange SMS (über 160 Zeichen) zählen doppelt.</p>
+        )}
+      </section>
 
       {/* Zeitraum */}
       <div className="flex gap-2" role="tablist" aria-label="Zeitraum">
