@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPhone-Vorschau – Kommt gleich</title>
+<link rel="icon" href="/icon.svg">
+<style>
+  :root {
+    --bg: #eceae6; --text: #1c1917; --muted: #78716c; --card: #fff; --line: #d6d3d1;
+    --marke: #e8590c; --rahmen: #1c1c1e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161514; --text: #f5f5f4; --muted: #a8a29e; --card: #232120; --line: #3a3735; --rahmen: #3a3a3c; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  header {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+    padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--card);
+  }
+  header h1 { font-size: 15px; margin: 0; }
+  header h1 span { color: var(--marke); }
+  .tipp { color: var(--muted); font-size: 12px; flex: 1; min-width: 200px; }
+  button, select {
+    font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 8px; padding: 5px 10px; cursor: pointer;
+  }
+  button:hover { border-color: var(--marke); }
+  main {
+    flex: 1; min-height: 0; display: flex; justify-content: center; align-items: flex-start;
+    gap: 40px; padding: 18px 16px; overflow: auto;
+  }
+  .spalte { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .titel { font-weight: 600; font-size: 13px; display: flex; gap: 8px; align-items: center; }
+  .titel small { color: var(--muted); font-weight: 400; }
+  .leiste { display: flex; gap: 6px; align-items: center; max-width: 100%; }
+  .leiste input {
+    font: 12px ui-monospace, Consolas, monospace; width: 260px; max-width: 52vw; padding: 5px 8px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text);
+  }
+  /* Das iPhone: echte Bildschirmgröße 393 x 852 (iPhone 15/16), per --skala verkleinert */
+  .halter { width: calc(417px * var(--skala, 1)); height: calc(876px * var(--skala, 1)); }
+  .iphone {
+    width: 417px; height: 876px; padding: 12px; border-radius: 68px; background: var(--rahmen);
+    box-shadow: 0 0 0 2px #555 inset, 0 30px 60px -20px rgba(0,0,0,.45);
+    transform: scale(var(--skala, 1)); transform-origin: top left; position: relative;
+  }
+  .bildschirm {
+    width: 393px; height: 852px; border-radius: 56px; overflow: hidden; background: #fff;
+    position: relative; display: flex; flex-direction: column;
+  }
+  .statusbar {
+    height: 54px; flex: none; display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 34px 0 46px; font: 600 16px -apple-system, "Segoe UI", sans-serif; color: #000; background: #fff;
+  }
+  .insel { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 2; }
+  .symbole { font-size: 12px; letter-spacing: 2px; }
+  iframe { border: 0; width: 393px; flex: 1; display: block; background: #fff; }
+  .home { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: rgba(0,0,0,.8); pointer-events: none; }
+  .hinweis { color: var(--muted); font-size: 12px; max-width: 360px; text-align: center; min-height: 17px; }
+  .hinweis.neu { color: var(--marke); font-weight: 600; }
+  @media (max-width: 600px) { main { gap: 24px; } .leiste input { width: 160px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>📱 iPhone-Vorschau · <span>Kommt gleich</span></h1>
+  <div class="tipp">Links bedienst du die App als Handwerker. Sobald ein Kundenlink erscheint, öffnet er sich rechts automatisch.</div>
+  <label>Größe
+    <select id="groesse">
+      <option value="auto">Passend</option><option value="1">100 %</option><option value="0.8">80 %</option><option value="0.65">65 %</option>
+    </select>
+  </label>
+  <button id="beideNeu">↻ Beide neu laden</button>
+</header>
+
+<main>
+  <div class="spalte">
+    <div class="titel">🔧 Handwerker <small>App</small></div>
+    <div class="leiste">
+      <input id="adresseH" spellcheck="false" aria-label="Adresse Handwerker">
+      <button data-ziel="h" data-aktion="los">Öffnen</button>
+      <button data-ziel="h" data-aktion="neu" title="Neu laden">↻</button>
+    </div>
+    <div class="halter"><div class="iphone"><div class="bildschirm">
+      <div class="insel"></div>
+      <div class="statusbar"><span class="uhr">9:41</span><span class="symbole">▂▄▆ ◔ ▮</span></div>
+      <iframe id="h" title="Handwerker-iPhone"></iframe>
+      <div class="home"></div>
+    </div></div></div>
+  </div>
+
+  <div class="spalte">
+    <div class="titel">🏠 Kunde <small>bekommt den SMS-Link</small></div>
+    <div class="leiste">
+      <input id="adresseK" spellcheck="false" placeholder="/t/… (Kundenlink)" aria-label="Adresse Kunde">
+      <button data-ziel="k" data-aktion="los">Öffnen</button>
+      <button data-ziel="k" data-aktion="neu" title="Neu laden">↻</button>
+    </div>
+    <div class="halter"><div class="iphone"><div class="bildschirm">
+      <div class="insel"></div>
+      <div class="statusbar"><span class="uhr">9:41</span><span class="symbole">▂▄▆ ◔ ▮</span></div>
+      <iframe id="k" title="Kunden-iPhone"></iframe>
+      <div class="home"></div>
+    </div></div></div>
+    <div class="hinweis" id="hinweis">Noch kein Kundenlink. Links einen Auftrag öffnen.</div>
+  </div>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const rahmen = { h: $("h"), k: $("k") };
+  const felder = { h: $("adresseH"), k: $("adresseK") };
+  const params = new URLSearchParams(location.search);
+
+  // Nur Pfade dieser App zulassen (gleiche Herkunft), damit die Vorschau nichts Fremdes lädt
+  function pfad(eingabe) {
+    try {
+      const u = new URL(eingabe.trim() || "/", location.origin);
+      return u.pathname + u.search + u.hash;
+    } catch { return "/"; }
+  }
+  function laden(ziel, ort) {
+    const p = pfad(ort);
+    felder[ziel].value = p;
+    rahmen[ziel].src = p;
+  }
+
+  laden("h", params.get("h") || "/login");
+  if (params.get("k")) laden("k", params.get("k"));
+
+  document.querySelectorAll("button[data-ziel]").forEach((b) => b.addEventListener("click", () => {
+    const z = b.dataset.ziel;
+    if (b.dataset.aktion === "los") laden(z, felder[z].value);
+    else try { rahmen[z].contentWindow.location.reload(); } catch { laden(z, felder[z].value); }
+  }));
+  Object.entries(felder).forEach(([z, f]) => f.addEventListener("keydown", (e) => { if (e.key === "Enter") laden(z, f.value); }));
+  $("beideNeu").addEventListener("click", () => Object.values(rahmen).forEach((r) => { try { r.contentWindow.location.reload(); } catch {} }));
+
+  // Adresszeile mitführen + Kundenlink im Handwerker-iPhone finden
+  let letzterLink = null;
+  function beobachten() {
+    for (const [z, r] of Object.entries(rahmen)) {
+      try {
+        const loc = r.contentWindow.location;
+        const p = loc.pathname + loc.search;
+        if (document.activeElement !== felder[z] && p !== "blank" && felder[z].value !== p) felder[z].value = p;
+      } catch {}
+    }
+    try {
+      const text = rahmen.h.contentDocument?.body?.innerText || "";
+      const treffer = text.match(/https?:\/\/[^\s]+\/t\/[A-Za-z0-9_-]{6,}/);
+      if (treffer && treffer[0] !== letzterLink) {
+        letzterLink = treffer[0];
+        laden("k", new URL(letzterLink).pathname);
+        $("hinweis").textContent = "Neuer Kundenlink geöffnet – so sieht's der Kunde.";
+        $("hinweis").className = "hinweis neu";
+        setTimeout(() => ($("hinweis").className = "hinweis"), 3000);
+      }
+    } catch {}
+  }
+  setInterval(beobachten, 800);
+
+  // Uhrzeit in der Statusleiste
+  const uhr = () => document.querySelectorAll(".uhr").forEach((u) => (u.textContent = new Date().toLocaleTimeString("de-DE", { hour: "numeric", minute: "2-digit" })));
+  uhr(); setInterval(uhr, 15000);
+
+  // Größe an das Fenster anpassen
+  function skalieren() {
+    const wahl = $("groesse").value;
+    let s = 1;
+    if (wahl === "auto") {
+      const hoehe = window.innerHeight - document.querySelector("header").offsetHeight - 100;
+      const breite = (window.innerWidth - 80) / (window.innerWidth > 900 ? 2 : 1);
+      s = Math.max(0.35, Math.min(1, hoehe / 876, breite / 417));
+    } else s = Number(wahl);
+    document.documentElement.style.setProperty("--skala", s);
+    try { localStorage.setItem("iphone-groesse", wahl); } catch {}
+  }
+  try { const g = localStorage.getItem("iphone-groesse"); if (g) $("groesse").value = g; } catch {}
+  $("groesse").addEventListener("change", skalieren);
+  window.addEventListener("resize", skalieren);
+  skalieren();
+</script>
+</body>
+</html>

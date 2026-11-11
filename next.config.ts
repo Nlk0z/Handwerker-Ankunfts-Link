@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/**": ["./db/schema.sql"],
   },
+  // iPhone-Vorschau für den PC: http://localhost:3000/iphone
+  async rewrites() {
+    return [{ source: "/iphone", destination: "/iphone.html" }];
+  },
 };
 
 export default nextConfig;

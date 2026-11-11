@@ -1,0 +1,25 @@
+name: Prüfen
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typen prüfen
+        run: npm run lint
+      - name: Build
+        run: npm run build
+      - name: App starten und Rauchtest
+        run: |
+          npm start &
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/login > /dev/null && break; sleep 1; done
+          npm run smoke

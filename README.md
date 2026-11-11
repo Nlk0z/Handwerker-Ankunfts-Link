@@ -12,6 +12,23 @@ Der Handwerker tippt auf **„Losgefahren“**. Der Kunde bekommt eine SMS mit L
 
 Alle Screenshots liegen in [`screenshots/`](screenshots/). Neu erzeugen: App starten, dann `npm run screenshots` ausführen.
 
+## iPhone-Vorschau auf dem PC
+
+```bash
+npm install
+npm run iphone     # startet die App und öffnet http://localhost:3000/iphone
+```
+
+Zwei iPhones nebeneinander: links die Handwerker-App, rechts die Kundenseite. Sobald links ein Kundenlink auftaucht, öffnet er sich rechts automatisch. In Claude Code gibt es dafür den Skill `iphone-vorschau`.
+
+## Prüfen
+
+| Befehl | Was |
+|---|---|
+| `npm run check` | Typen + Build |
+| `npm run smoke` | Rauchtest gegen die laufende App |
+| GitHub Actions „Prüfen“ | läuft bei jedem Push automatisch |
+
 ## Funktionen (Stufe 1, MVP)
 
 - Betrieb registrieren, Login, Mitarbeiter anlegen
