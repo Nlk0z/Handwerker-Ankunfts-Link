@@ -91,7 +91,9 @@ export async function basisUrl() {
   if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  // Lokal (localhost, WLAN-Adresse wie 192.168.…, *.local) läuft die App ohne HTTPS.
+  const lokal = /^(localhost|\d{1,3}(\.\d{1,3}){3}|\[[0-9a-f:]+\])(:\d+)?$/i.test(host) || /\.local(:\d+)?$/i.test(host);
+  const proto = h.get("x-forwarded-proto") ?? (lokal ? "http" : "https");
   return `${proto}://${host}`;
 }
 

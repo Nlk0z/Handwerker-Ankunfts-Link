@@ -14,6 +14,12 @@ links die Handwerker-App, rechts die Kundenseite. Sobald links ein Kundenlink (`
 3. Demo-Login ist vorausgefüllt (`demo@lukas-technology.de`, Demo-Modus ohne `.env`). Links „Anmelden“ klicken, Auftrag öffnen → rechts erscheint die Kundenseite.
 4. Für eine echte Handy-Prüfung einzelner Seiten zusätzlich `resize_window` mit `preset: "mobile"` und z. B. `/login` oder einen `/t/…`-Link öffnen; danach `preset: "desktop"` zurücksetzen.
 
+## In einer Cloud-Sitzung (Claude-App, Vorschau rechts)
+1. `npm install` (falls `node_modules` fehlt), dann `npm run dev` im Hintergrund starten und warten, bis `http://localhost:3000/login` antwortet.
+2. `report_preview_port` mit `port: 3000` aufrufen. Die Vorschau rechts in der Claude-App zeigt dann die Startadresse.
+3. Beim Entwickeln leitet die Startadresse `/` direkt auf `/iphone` um (nur `NODE_ENV=development`, nicht in den iPhone-Rahmen). Die Vorschau zeigt also sofort beide iPhones und ist bedienbar.
+4. Ein- und ausblenden: über den Vorschau-Knopf der Claude-App. Ein eigenes Panel kann keine bedienbare Webseite zeigen.
+
 ## Ohne Claude (Niko selbst)
 ```bash
 npm run iphone
