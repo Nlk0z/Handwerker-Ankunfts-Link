@@ -1,7 +1,8 @@
 import "server-only";
 import { query } from "./db";
 
-export type SmsTyp = "losgefahren" | "bald_da" | "verspaetung";
+import type { SmsTyp } from "./smsTexte";
+export type { SmsTyp };
 
 /**
  * Schickt eine SMS über seven.io und protokolliert sie.

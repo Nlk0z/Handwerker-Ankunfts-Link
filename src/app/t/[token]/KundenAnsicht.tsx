@@ -104,7 +104,17 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
         {d.status === "storniert" && <p className="text-xl font-bold">Dieser Termin wurde abgesagt.</p>}
       </section>
 
-      <Fortschritt status={d.status} />
+      {d.status !== "erledigt" && <Fortschritt status={d.status} />}
+
+      {d.status === "erledigt" && (
+        <Bewertung token={token} betrieb={d.betrieb} schon={d.bewertung} bewertungLink={d.bewertungLink} />
+      )}
+
+      {d.status === "erledigt" && d.website && (
+        <a href={d.website} target="_blank" rel="noreferrer" className="knopf-zweit">
+          <Icon name="welt" /> Website von {d.betrieb}
+        </a>
+      )}
 
       {d.position && (
         <section className="space-y-1">
@@ -121,6 +131,76 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
 
       <footer className="pt-4 text-center text-xs text-stone-400">Diese Seite aktualisiert sich von selbst</footer>
     </main>
+  );
+}
+
+function Bewertung({ token, betrieb, schon, bewertungLink }: { token: string; betrieb: string; schon: number | null; bewertungLink: string | null }) {
+  const [sterne, setSterne] = useState(0);
+  const [text, setText] = useState("");
+  const [stand, setStand] = useState<"offen" | "sendet" | "fertig" | "fehler">(schon ? "fertig" : "offen");
+
+  const senden = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sterne) return;
+    setStand("sendet");
+    try {
+      const r = await fetch(`/api/t/${token}/bewertung`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sterne, text }),
+      });
+      setStand(r.ok ? "fertig" : "fehler");
+    } catch {
+      setStand("fehler");
+    }
+  };
+
+  if (stand === "fertig") {
+    return (
+      <section className="karte space-y-3 text-center">
+        <p className="text-lg font-bold">Danke für Ihre Bewertung!</p>
+        {bewertungLink && (
+          <>
+            <p className="text-sm text-stone-600">Sie würden {betrieb} sehr helfen, wenn Sie die Bewertung auch öffentlich teilen.</p>
+            <a href={bewertungLink} target="_blank" rel="noreferrer" className="knopf-haupt">
+              <Icon name="stern" /> Auch bei Google bewerten
+            </a>
+          </>
+        )}
+      </section>
+    );
+  }
+
+  return (
+    <form onSubmit={senden} className="karte space-y-3">
+      <p className="text-center text-lg font-bold">Wie zufrieden waren Sie?</p>
+      <div className="flex justify-center gap-1" role="radiogroup" aria-label="Sterne">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <button
+            key={i}
+            type="button"
+            role="radio"
+            aria-checked={sterne === i}
+            aria-label={`${i} ${i === 1 ? "Stern" : "Sterne"}`}
+            onClick={() => setSterne(i)}
+            className={`rounded-full p-1 transition active:scale-90 ${i <= sterne ? "text-amber-500 [&_path]:fill-current" : "text-stone-300"}`}
+          >
+            <Icon name="stern" className="h-10 w-10" />
+          </button>
+        ))}
+      </div>
+      <textarea
+        className="eingabe min-h-24 py-2"
+        placeholder="Möchten Sie noch etwas sagen? (freiwillig)"
+        maxLength={1000}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+      {stand === "fehler" && <p className="text-sm font-medium text-red-600">Das hat leider nicht geklappt. Bitte noch einmal versuchen.</p>}
+      <button type="submit" disabled={!sterne || stand === "sendet"} className="knopf-haupt">
+        {stand === "sendet" ? "Wird gesendet …" : "Bewertung abschicken"}
+      </button>
+    </form>
   );
 }
 

@@ -36,6 +36,9 @@ export async function seedDemo(query: Query) {
     );
   }
 
+  // Demo: Beispiel-Website, damit die Kundenseite nach "erledigt" den Website-Knopf zeigt
+  await query(`UPDATE betrieb SET website = 'https://example.com' WHERE id = $1 AND website IS NULL`, [chef!.betrieb_id]);
+
   const tag = heute();
   const schonDa = await query(`SELECT 1 FROM auftrag WHERE betrieb_id = $1 AND termin_datum = $2 LIMIT 1`, [chef!.betrieb_id, tag]);
   if (schonDa.length) return;

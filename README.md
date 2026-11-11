@@ -34,10 +34,13 @@ Zwei iPhones nebeneinander: links die Handwerker-App, rechts das Handy des Kunde
 - Betrieb registrieren, Login, Mitarbeiter anlegen
 - Tagesliste mit Blättern zwischen den Tagen
 - Auftrag anlegen: Kunde, Handynummer, Adresse, Zeitfenster, Monteur
-- **Losgefahren**: Fahrzeit wählen (10–60 Min), dann bekommt der Kunde eine SMS mit Link
-- **Verspätung melden**: Der Kunde bekommt eine SMS mit der neuen Uhrzeit
+- **Losgefahren**: Fahrzeit wählen (10–60 Min) oder Ankunftszeit eintippen, dann bekommt der Kunde eine SMS mit Link
+- **Verspätung melden**: Schnellauswahl oder neue Uhrzeit, der Kunde bekommt eine SMS
 - **In 15 Minuten da**: Diese SMS geht automatisch raus (bei Fahrten über 20 Min)
-- **Angekommen / Erledigt**: Danach läuft der Kundenlink ab
+- **Angekommen**: SMS „ist jetzt da“
+- **Erledigt**: Danke-SMS; auf der Kundenseite kann der Kunde mit Sternen bewerten und sieht die Website des Betriebs (optional Link zu Google-Bewertungen). Der Link bleibt danach 7 Tage gültig
+- **SMS-Texte** in den Einstellungen selbst schreiben, mit Platzhaltern (`{kunde}`, `{monteur}`, `{betrieb}`, `{uhrzeit}`, `{link}`) und Vorschau; „Gleich da“, „Angekommen“ und „Danke“ lassen sich abschalten
+- **Bewertungen** sieht der Betrieb im Auftrag und gesammelt in den Einstellungen
 - Kundenseite aktualisiert sich selbst, mit Live-Karte (im Betrieb abschaltbar) und Anruf-Knopf
 - Als Web-App zum Home-Bildschirm hinzufügbar
 

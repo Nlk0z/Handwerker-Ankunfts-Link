@@ -1,5 +1,6 @@
 import "server-only";
 import { auftragPerToken, baldDaPruefen, basisUrl } from "./auftraege";
+import { query } from "./db";
 
 /** Nur das, was der Kunde sehen darf (keine Telefonnummer, keine Notiz). */
 export type KundenDaten = {
@@ -13,6 +14,10 @@ export type KundenDaten = {
   fensterBis: string | null;
   eta: string | null;
   position: { lat: number; lng: number; zeit: string } | null;
+  website: string | null;
+  bewertungLink: string | null;
+  /** Schon abgegebene Bewertung (Sterne), sonst null */
+  bewertung: number | null;
 };
 
 export async function kundenDaten(token: string): Promise<KundenDaten | { gueltig: false }> {
@@ -44,5 +49,22 @@ export async function kundenDaten(token: string): Promise<KundenDaten | { guelti
     fensterBis: a.fenster_bis,
     eta: a.eta ? new Date(a.eta).toISOString() : null,
     position,
+    website: a.website,
+    bewertungLink: a.bewertung_link,
+    bewertung: a.bewertung_sterne,
   };
+}
+
+/** Bewertung speichern (nur für erledigte Aufträge mit gültigem Link). Eine pro Auftrag, ändern erlaubt. */
+export async function bewertungSpeichern(token: string, sterne: number, text: string) {
+  if (!/^[A-Za-z0-9_-]{10,40}$/.test(token)) return false;
+  if (!Number.isInteger(sterne) || sterne < 1 || sterne > 5) return false;
+  const a = await auftragPerToken(token);
+  if (!a || a.status !== "erledigt" || new Date(a.link_gueltig_bis) < new Date()) return false;
+  await query(
+    `INSERT INTO bewertung (auftrag_id, sterne, text) VALUES ($1, $2, $3)
+     ON CONFLICT (auftrag_id) DO UPDATE SET sterne = EXCLUDED.sterne, text = EXCLUDED.text, erstellt_am = now()`,
+    [a.id, sterne, text.trim().slice(0, 1000) || null],
+  );
+  return true;
 }

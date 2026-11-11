@@ -6,6 +6,7 @@ import { Icon } from "@/components/Icon";
 import { losfahrenAktion, statusAktion, verspaetungAktion } from "../../actions";
 
 const FAHRZEITEN = [10, 20, 30, 45, 60];
+type Zeitaktion = (id: string, zeit: number | string) => Promise<string | undefined>;
 
 export function Steuerung({ id, status, link, karteAktiv }: { id: string; status: Status; link: string; karteAktiv: boolean }) {
   const [laeuft, starten] = useTransition();
@@ -13,14 +14,37 @@ export function Steuerung({ id, status, link, karteAktiv }: { id: string; status
   const [kopiert, setKopiert] = useState(false);
   const standort = useStandortTeilen(id, status === "unterwegs" && karteAktiv);
 
-  const zeitwahl = (aktion: (id: string, m: number) => Promise<void>) => (
-    <div className="grid grid-cols-3 gap-2">
-      {FAHRZEITEN.map((m) => (
-        <button key={m} disabled={laeuft} className="knopf-zweit" onClick={() => starten(async () => { await aktion(id, m); setAuswahl(null); })}>
-          {m} Min
-        </button>
-      ))}
-      <button disabled={laeuft} className="knopf-zweit text-stone-500" onClick={() => setAuswahl(null)}>Abbruch</button>
+  const [fehler, setFehler] = useState("");
+  const [eigeneZeit, setEigeneZeit] = useState("");
+
+  const ausfuehren = (aktion: Zeitaktion, zeit: number | string) =>
+    starten(async () => {
+      const f = await aktion(id, zeit);
+      if (f) { setFehler(f); return; }
+      setFehler(""); setEigeneZeit(""); setAuswahl(null);
+    });
+
+  const zeitwahl = (aktion: Zeitaktion, eigeneBeschriftung: string) => (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-2">
+        {FAHRZEITEN.map((m) => (
+          <button key={m} disabled={laeuft} className="knopf-zweit" onClick={() => ausfuehren(aktion, m)}>
+            {m} Min
+          </button>
+        ))}
+        <button disabled={laeuft} className="knopf-zweit text-stone-500" onClick={() => { setAuswahl(null); setFehler(""); }}>Abbruch</button>
+      </div>
+      <form
+        className="flex items-end gap-2"
+        onSubmit={(e) => { e.preventDefault(); if (eigeneZeit) ausfuehren(aktion, eigeneZeit); }}
+      >
+        <label className="min-w-0 flex-1">
+          <span className="beschriftung">{eigeneBeschriftung}</span>
+          <input type="time" className="eingabe" value={eigeneZeit} onChange={(e) => setEigeneZeit(e.target.value)} required />
+        </label>
+        <button type="submit" disabled={laeuft || !eigeneZeit} className="knopf-haupt w-auto px-5">OK</button>
+      </form>
+      {fehler && <p className="text-sm font-medium text-red-600">{fehler}</p>}
     </div>
   );
 
@@ -30,7 +54,7 @@ export function Steuerung({ id, status, link, karteAktiv }: { id: string; status
         auswahl === "los" ? (
           <div className="karte space-y-3">
             <p className="font-semibold">Wie lange fahren Sie ungefähr?</p>
-            {zeitwahl(losfahrenAktion)}
+            {zeitwahl(losfahrenAktion, "Oder Ankunftszeit eingeben")}
             <p className="text-xs text-stone-500">Der Kunde bekommt sofort eine SMS mit Link und Ankunftszeit.</p>
           </div>
         ) : (
@@ -48,7 +72,7 @@ export function Steuerung({ id, status, link, karteAktiv }: { id: string; status
           {auswahl === "spaeter" ? (
             <div className="karte space-y-3">
               <p className="font-semibold">Neue Ankunft in …</p>
-              {zeitwahl(verspaetungAktion)}
+              {zeitwahl(verspaetungAktion, "Oder neue Ankunftszeit eingeben")}
             </div>
           ) : (
             <button className="knopf-zweit" onClick={() => setAuswahl("spaeter")}>

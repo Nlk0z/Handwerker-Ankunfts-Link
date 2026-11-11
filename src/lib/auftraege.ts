@@ -2,7 +2,8 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { eins, query } from "./db";
-import { sendeSms, type SmsTyp } from "./sms";
+import { sendeSms } from "./sms";
+import { smsFuellen, vorlage, type SmsTyp, type SmsVorlagen } from "./smsTexte";
 import { uhrzeit } from "./format";
 
 export type Status = "geplant" | "unterwegs" | "angekommen" | "erledigt" | "storniert";
@@ -67,12 +68,17 @@ export type KundenSicht = Auftrag & {
   betrieb_name: string;
   betrieb_telefon: string | null;
   karte_aktiv: boolean;
+  website: string | null;
+  bewertung_link: string | null;
+  bewertung_sterne: number | null;
 };
 
 export async function auftragPerToken(token: string) {
   return eins<KundenSicht>(
-    `SELECT ${SPALTEN}, b.name AS betrieb_name, b.telefon AS betrieb_telefon, b.karte_aktiv
+    `SELECT ${SPALTEN}, b.name AS betrieb_name, b.telefon AS betrieb_telefon, b.karte_aktiv,
+            b.website, b.bewertung_link, bw.sterne AS bewertung_sterne
        ${VON} JOIN betrieb b ON b.id = a.betrieb_id
+       LEFT JOIN bewertung bw ON bw.auftrag_id = a.id
       WHERE a.link_token = $1`,
     [token],
   );
@@ -98,18 +104,20 @@ export async function basisUrl() {
 }
 
 async function smsZumAuftrag(a: Auftrag, typ: SmsTyp, link: string) {
-  const b = await eins<{ name: string; sms_absender: string | null }>(
-    `SELECT name, sms_absender FROM betrieb WHERE id = $1`,
+  const b = await eins<{ name: string; sms_absender: string | null; sms_vorlagen: SmsVorlagen | null }>(
+    `SELECT name, sms_absender, sms_vorlagen FROM betrieb WHERE id = $1`,
     [a.betrieb_id],
   );
-  const wer = a.mitarbeiter_name ? `${a.mitarbeiter_name} von ${b?.name}` : b?.name;
-  const zeit = uhrzeit(a.eta);
-  const texte: Record<SmsTyp, string> = {
-    losgefahren: `Hallo ${a.kunde_name}, ${wer} ist losgefahren. Ankunft ca. ${zeit} Uhr. Live verfolgen: ${link}`,
-    bald_da: `${wer} ist in ca. 15 Minuten bei Ihnen (ca. ${zeit} Uhr). ${link}`,
-    verspaetung: `Kleine Verspätung: ${wer} kommt jetzt ca. ${zeit} Uhr. Entschuldigung! ${link}`,
-  };
-  return sendeSms({ auftragId: a.id, typ, an: a.kunde_telefon, text: texte[typ], absender: b?.sms_absender });
+  const v = vorlage(b?.sms_vorlagen, typ);
+  if (!v.aktiv) return null; // vom Betrieb abgeschaltet
+  const text = smsFuellen(v.text, typ, {
+    kunde: a.kunde_name,
+    monteur: a.mitarbeiter_name ?? "Ihr Handwerker",
+    betrieb: b?.name ?? "",
+    uhrzeit: uhrzeit(a.eta),
+    link,
+  });
+  return sendeSms({ auftragId: a.id, typ, an: a.kunde_telefon, text, absender: b?.sms_absender });
 }
 
 export async function losfahren(betriebId: string, id: string, minuten: number, link: string) {
@@ -144,15 +152,27 @@ const ERLAUBT_VON: Record<"angekommen" | "erledigt" | "storniert", Status[]> = {
   storniert: ["geplant", "unterwegs"],
 };
 
-export async function statusSetzen(betriebId: string, id: string, status: "angekommen" | "erledigt" | "storniert") {
+export async function statusSetzen(
+  betriebId: string,
+  id: string,
+  status: "angekommen" | "erledigt" | "storniert",
+  link: string,
+) {
   const extra = status === "angekommen" ? ", angekommen_am = now()" : "";
-  // Nach Abschluss läuft der Kundenlink noch 2 Stunden, danach ist er ungültig.
-  const ablauf = status !== "angekommen" ? ", link_gueltig_bis = LEAST(link_gueltig_bis, now() + interval '2 hours')" : "";
-  await query(
+  // Nach "erledigt" bleibt der Kundenlink 7 Tage gültig (Zeit für die Bewertung), nach Storno 2 Stunden.
+  const ablauf =
+    status === "erledigt" ? ", link_gueltig_bis = GREATEST(link_gueltig_bis, now() + interval '7 days')"
+    : status === "storniert" ? ", link_gueltig_bis = LEAST(link_gueltig_bis, now() + interval '2 hours')"
+    : "";
+  const a = await eins<{ id: string }>(
     `UPDATE auftrag SET status = $3 ${extra} ${ablauf}
-      WHERE betrieb_id = $1 AND id = $2 AND status IN (${ERLAUBT_VON[status].map((s) => `'${s}'`).join(", ")})`,
+      WHERE betrieb_id = $1 AND id = $2 AND status IN (${ERLAUBT_VON[status].map((s) => `'${s}'`).join(", ")})
+      RETURNING id`,
     [betriebId, id, status],
   );
+  if (!a || status === "storniert") return;
+  const auftrag = (await auftragLaden(betriebId, id))!;
+  await smsZumAuftrag(auftrag, status, link);
 }
 
 /**
@@ -168,6 +188,8 @@ export async function baldDaPruefen(link: (token: string) => string, nurAuftragI
         AND a.eta - a.losgefahren_am > interval '20 minutes'
         AND NOT EXISTS (SELECT 1 FROM benachrichtigung n
                          WHERE n.auftrag_id = a.id AND n.typ = 'bald_da')
+        AND NOT EXISTS (SELECT 1 FROM betrieb b
+                         WHERE b.id = a.betrieb_id AND b.sms_vorlagen->'bald_da'->>'aktiv' = 'false')
         ${nurAuftragId ? "AND a.id = $1" : ""}`,
     nurAuftragId ? [nurAuftragId] : [],
   );

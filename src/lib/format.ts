@@ -60,3 +60,20 @@ export function initialen(name: string) {
     .map((t) => t[0]!.toUpperCase())
     .join("");
 }
+
+/**
+ * Minuten von jetzt bis zur Uhrzeit "HH:MM" (deutsche Zeit, heute).
+ * null, wenn die Eingabe ungültig ist oder die Uhrzeit schon vorbei ist.
+ */
+export function minutenBis(hhmm: string, jetzt = new Date()) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim());
+  if (!m) return null;
+  const ziel = Number(m[1]) * 60 + Number(m[2]);
+  if (Number(m[1]) > 23 || Number(m[2]) > 59) return null;
+  const [h, min] = new Intl.DateTimeFormat("de-DE", { timeZone: ZONE, hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .format(jetzt)
+    .split(":")
+    .map(Number);
+  const diff = ziel - (h! * 60 + min!);
+  return diff > 0 ? diff : null;
+}

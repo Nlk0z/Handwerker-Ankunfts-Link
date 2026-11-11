@@ -46,6 +46,13 @@ const PFADE = {
     </>
   ),
   nachricht: <path d="M4.5 5.5h15v10h-9l-4 3.5v-3.5h-2z" />,
+  stern: <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />,
+  welt: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.3 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.3-3.5-8.5s1-6 3.5-8.5z" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof PFADE;

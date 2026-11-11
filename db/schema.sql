@@ -51,7 +51,8 @@ CREATE INDEX IF NOT EXISTS auftrag_betrieb_datum ON auftrag (betrieb_id, termin_
 CREATE TABLE IF NOT EXISTS benachrichtigung (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   auftrag_id   uuid NOT NULL REFERENCES auftrag(id) ON DELETE CASCADE,
-  typ          text NOT NULL CHECK (typ IN ('losgefahren', 'bald_da', 'verspaetung')),
+  typ          text NOT NULL CONSTRAINT benachrichtigung_typ_check
+               CHECK (typ IN ('losgefahren', 'bald_da', 'verspaetung', 'angekommen', 'erledigt')),
   text         text NOT NULL,
   status       text NOT NULL CHECK (status IN ('demo', 'gesendet', 'fehler')),
   anbieter_id  text,
@@ -60,3 +61,33 @@ CREATE TABLE IF NOT EXISTS benachrichtigung (
 );
 
 CREATE INDEX IF NOT EXISTS benachrichtigung_auftrag ON benachrichtigung (auftrag_id);
+
+-- Ergänzungen (laufen auch auf bestehenden Datenbanken, mehrfach ausführbar)
+
+-- Website, Bewertungs-Link (z. B. Google) und eigene SMS-Texte des Betriebs
+ALTER TABLE betrieb ADD COLUMN IF NOT EXISTS website text;
+ALTER TABLE betrieb ADD COLUMN IF NOT EXISTS bewertung_link text;
+ALTER TABLE betrieb ADD COLUMN IF NOT EXISTS sms_vorlagen jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+-- Neue SMS-Arten "angekommen" und "erledigt" (ältere Datenbanken kannten nur drei)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+     WHERE conname = 'benachrichtigung_typ_check' AND pg_get_constraintdef(oid) LIKE '%erledigt%'
+  ) THEN
+    ALTER TABLE benachrichtigung DROP CONSTRAINT IF EXISTS benachrichtigung_typ_check;
+    ALTER TABLE benachrichtigung ADD CONSTRAINT benachrichtigung_typ_check
+      CHECK (typ IN ('losgefahren', 'bald_da', 'verspaetung', 'angekommen', 'erledigt'));
+  END IF;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Bewertung des Kunden nach erledigtem Auftrag (eine pro Auftrag)
+CREATE TABLE IF NOT EXISTS bewertung (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  auftrag_id   uuid NOT NULL UNIQUE REFERENCES auftrag(id) ON DELETE CASCADE,
+  sterne       integer NOT NULL CHECK (sterne BETWEEN 1 AND 5),
+  text         text,
+  erstellt_am  timestamptz NOT NULL DEFAULT now()
+);

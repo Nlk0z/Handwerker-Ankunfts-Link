@@ -6,11 +6,12 @@ import { auftragLaden, basisUrl, benachrichtigungen } from "@/lib/auftraege";
 import { datumKurz, telefonAnzeige, uhrzeit, zeitfenster } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Icon } from "@/components/Icon";
+import { Sterne } from "@/components/Sterne";
 import { Steuerung } from "./Steuerung";
 
 export const dynamic = "force-dynamic";
 
-const SMS_TYP = { losgefahren: "Losgefahren", bald_da: "Gleich da (15 Min)", verspaetung: "Verspätung" } as const;
+import { SMS_INFO } from "@/lib/smsTexte";
 
 export default async function AuftragSeite({ params }: { params: Promise<{ id: string }> }) {
   const n = await nutzerOderLogin();
@@ -21,6 +22,7 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
   const sms = await benachrichtigungen(a.id);
   const link = `${await basisUrl()}/t/${a.link_token}`;
   const b = await eins<{ karte_aktiv: boolean }>(`SELECT karte_aktiv FROM betrieb WHERE id = $1`, [n.betrieb_id]);
+  const bewertung = await eins<{ sterne: number; text: string | null }>(`SELECT sterne, text FROM bewertung WHERE auftrag_id = $1`, [a.id]);
 
   return (
     <div className="space-y-4">
@@ -49,13 +51,21 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
 
       <Steuerung id={a.id} status={a.status} link={link} karteAktiv={b?.karte_aktiv ?? false} />
 
+      {bewertung && (
+        <section className="karte space-y-1">
+          <p className="text-sm font-semibold text-stone-600">Bewertung vom Kunden</p>
+          <Sterne anzahl={bewertung.sterne} className="h-5 w-5" />
+          {bewertung.text && <p className="whitespace-pre-wrap break-words text-[15px]">„{bewertung.text}“</p>}
+        </section>
+      )}
+
       {sms.length > 0 && (
         <section className="space-y-2">
           <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">SMS an den Kunden</h2>
           {sms.map((s) => (
             <div key={s.id} className="karte space-y-1 text-sm">
               <div className="flex items-center justify-between text-xs text-stone-500">
-                <span className="font-semibold">{SMS_TYP[s.typ]} · {uhrzeit(s.gesendet_am)} Uhr</span>
+                <span className="font-semibold">{SMS_INFO[s.typ].titel} · {uhrzeit(s.gesendet_am)} Uhr</span>
                 <span className={s.status === "fehler" ? "font-semibold text-red-600" : s.status === "demo" ? "text-amber-700" : "text-green-700"}>
                   {s.status === "demo" ? "Demo – nicht verschickt" : s.status === "fehler" ? "Fehler" : "Verschickt"}
                 </span>

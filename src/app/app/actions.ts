@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { abmelden, nutzerOderLogin, passwortHash } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
-import { normalisiereTelefon } from "@/lib/format";
+import { minutenBis, normalisiereTelefon } from "@/lib/format";
+import { SMS_INFO, SMS_TYPEN, type SmsVorlagen } from "@/lib/smsTexte";
 import {
   auftragLaden,
   basisUrl,
@@ -59,23 +60,51 @@ async function kundenLink(betriebId: string, id: string) {
   return `${await basisUrl()}/t/${a.link_token}`;
 }
 
-export async function losfahrenAktion(id: string, minuten: number) {
+/**
+ * Fahrzeit: entweder Minuten (Schnellauswahl) oder eine Uhrzeit "HH:MM" (freie Eingabe).
+ * Gibt eine Fehlermeldung zurück, wenn die Uhrzeit nicht passt.
+ */
+function minutenAus(zeit: number | string): number | string {
+  if (typeof zeit === "number") return Math.max(1, Math.min(240, Math.round(zeit)));
+  const m = minutenBis(zeit);
+  if (m === null) return "Bitte eine Uhrzeit in der Zukunft eingeben.";
+  if (m > 12 * 60) return "Die Uhrzeit liegt mehr als 12 Stunden in der Zukunft.";
+  return m;
+}
+
+export async function losfahrenAktion(id: string, zeit: number | string): Promise<string | undefined> {
   const n = await nutzerOderLogin();
-  await losfahren(n.betrieb_id, id, Math.max(1, Math.min(240, Math.round(minuten))), await kundenLink(n.betrieb_id, id));
+  const m = minutenAus(zeit);
+  if (typeof m === "string") return m;
+  await losfahren(n.betrieb_id, id, m, await kundenLink(n.betrieb_id, id));
   revalidatePath(`/app/auftrag/${id}`);
 }
 
-export async function verspaetungAktion(id: string, minuten: number) {
+export async function verspaetungAktion(id: string, zeit: number | string): Promise<string | undefined> {
   const n = await nutzerOderLogin();
-  await verspaetung(n.betrieb_id, id, Math.max(1, Math.min(240, Math.round(minuten))), await kundenLink(n.betrieb_id, id));
+  const m = minutenAus(zeit);
+  if (typeof m === "string") return m;
+  await verspaetung(n.betrieb_id, id, m, await kundenLink(n.betrieb_id, id));
   revalidatePath(`/app/auftrag/${id}`);
 }
 
 export async function statusAktion(id: string, status: "angekommen" | "erledigt" | "storniert") {
   const n = await nutzerOderLogin();
-  await statusSetzen(n.betrieb_id, id, status);
+  await statusSetzen(n.betrieb_id, id, status, await kundenLink(n.betrieb_id, id));
   revalidatePath(`/app/auftrag/${id}`);
   revalidatePath("/app");
+}
+
+/** "www.beispiel.de" -> "https://www.beispiel.de"; ungültig -> undefined */
+function adresse(eingabe: string): string | null | undefined {
+  if (!eingabe) return null;
+  const mitSchema = /^https?:\/\//i.test(eingabe) ? eingabe : `https://${eingabe}`;
+  try {
+    const u = new URL(mitSchema);
+    return u.hostname.includes(".") ? u.toString() : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function einstellungenSpeichern(fd: FormData) {
@@ -83,18 +112,39 @@ export async function einstellungenSpeichern(fd: FormData) {
   if (n.rolle !== "inhaber") redirect("/app/einstellungen");
   const telefon = text(fd, "telefon") ? normalisiereTelefon(text(fd, "telefon")) : null;
   if (text(fd, "telefon") && !telefon) redirect("/app/einstellungen?fehler=telefon");
+  const website = adresse(text(fd, "website"));
+  const bewertungLink = adresse(text(fd, "bewertung_link"));
+  if (website === undefined || bewertungLink === undefined) redirect("/app/einstellungen?fehler=adresse");
   await query(
-    `UPDATE betrieb SET name = $2, telefon = $3, sms_absender = $4, karte_aktiv = $5 WHERE id = $1`,
+    `UPDATE betrieb SET name = $2, telefon = $3, sms_absender = $4, karte_aktiv = $5, website = $6, bewertung_link = $7
+      WHERE id = $1`,
     [
       n.betrieb_id,
       text(fd, "name") || n.betrieb_name,
       telefon,
       text(fd, "sms_absender").replace(/[^A-Za-z0-9]/g, "").slice(0, 11) || null,
       fd.get("karte_aktiv") === "on",
+      website,
+      bewertungLink,
     ],
   );
   revalidatePath("/app", "layout");
   redirect("/app/einstellungen?ok=1");
+}
+
+export async function smsVorlagenSpeichern(fd: FormData) {
+  const n = await nutzerOderLogin();
+  if (n.rolle !== "inhaber") redirect("/app/einstellungen");
+  const vorlagen: SmsVorlagen = {};
+  for (const typ of SMS_TYPEN) {
+    const t = text(fd, `text_${typ}`).slice(0, 480);
+    vorlagen[typ] = {
+      text: t, // leer = Standardtext
+      aktiv: SMS_INFO[typ].abschaltbar ? fd.get(`aktiv_${typ}`) === "on" : true,
+    };
+  }
+  await query(`UPDATE betrieb SET sms_vorlagen = $2::jsonb WHERE id = $1`, [n.betrieb_id, JSON.stringify(vorlagen)]);
+  redirect("/app/einstellungen?ok=sms#sms");
 }
 
 export async function mitarbeiterAnlegen(fd: FormData) {
