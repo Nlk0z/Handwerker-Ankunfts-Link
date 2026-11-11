@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import type { SmsVorlagen } from "@/lib/smsTexte";
 import { SmsTexte } from "./SmsTexte";
+import { AbsenderFeld } from "./AbsenderFeld";
 import { abmeldenAktion, einstellungenSpeichern, mitarbeiterAnlegen } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
 
       <form action={einstellungenSpeichern} className="karte space-y-4">
         <h2 className="font-semibold">Betrieb</h2>
-        <fieldset disabled={!chef} className="space-y-4">
+        <fieldset disabled={!chef} className="min-w-0 space-y-4">
           <div>
             <label className="beschriftung" htmlFor="name">Name (sieht der Kunde)</label>
             <input className="eingabe" id="name" name="name" defaultValue={b?.name} required />
@@ -59,17 +60,22 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
             <label className="beschriftung" htmlFor="telefon">Telefon für Rückfragen</label>
             <input className="eingabe" id="telefon" name="telefon" type="tel" defaultValue={b?.telefon ? telefonAnzeige(b.telefon) : ""} />
           </div>
-          <div>
-            <label className="beschriftung" htmlFor="sms_absender">SMS-Absender (max. 11 Zeichen, ohne Leerzeichen)</label>
-            <input className="eingabe" id="sms_absender" name="sms_absender" maxLength={11} defaultValue={b?.sms_absender ?? ""} />
-          </div>
+          <AbsenderFeld start={b?.sms_absender ?? ""} betrieb={b?.name ?? ""} />
           <div>
             <label className="beschriftung" htmlFor="website">Website (sieht der Kunde nach dem Auftrag)</label>
             <input className="eingabe" id="website" name="website" inputMode="url" placeholder="www.ihr-betrieb.de" defaultValue={b?.website ?? ""} />
           </div>
           <div>
-            <label className="beschriftung" htmlFor="bewertung_link">Link zu Ihren Google-Bewertungen (freiwillig)</label>
-            <input className="eingabe" id="bewertung_link" name="bewertung_link" inputMode="url" placeholder="https://g.page/r/…" defaultValue={b?.bewertung_link ?? ""} />
+            <label className="beschriftung" htmlFor="bewertung_link">Google-Bewertungslink (Kunde landet direkt im Bewertungsfenster)</label>
+            <input className="eingabe" id="bewertung_link" name="bewertung_link" inputMode="url" placeholder="https://g.page/r/…/review" defaultValue={b?.bewertung_link ?? ""} />
+            <details className="mt-1 text-xs text-stone-500">
+              <summary className="cursor-pointer font-medium text-marke">Wo finde ich den Link?</summary>
+              <ol className="mt-1 list-decimal space-y-0.5 pl-4">
+                <li>Bei Google Ihr Unternehmensprofil öffnen (z. B. Ihren Betriebsnamen googeln, wenn Sie angemeldet sind).</li>
+                <li>„Rezensionen erhalten“ bzw. „Nach Rezensionen fragen“ antippen.</li>
+                <li>Link kopieren und hier einfügen. Alternativ geht auch Ihre Google-Place-ID (beginnt mit „ChIJ“).</li>
+              </ol>
+            </details>
           </div>
           <label className="flex items-center justify-between gap-4 rounded-xl bg-stone-50 p-3">
             <span>

@@ -26,7 +26,7 @@ export function SmsTexte({ vorlagen, betrieb, darf }: { vorlagen: SmsVorlagen; b
 
   return (
     <form action={smsVorlagenSpeichern} className="space-y-4">
-      <fieldset disabled={!darf} className="space-y-4">
+      <fieldset disabled={!darf} className="min-w-0 space-y-4">
         <details className="rounded-xl bg-stone-50 p-3 text-sm">
           <summary className="cursor-pointer font-medium text-stone-700">Welche Platzhalter gibt es?</summary>
           <ul className="mt-2 space-y-1">

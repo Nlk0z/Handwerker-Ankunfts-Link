@@ -38,7 +38,8 @@ Zwei iPhones nebeneinander: links die Handwerker-App, rechts das Handy des Kunde
 - **Verspätung melden**: Schnellauswahl oder neue Uhrzeit, der Kunde bekommt eine SMS
 - **In 15 Minuten da**: Diese SMS geht automatisch raus (bei Fahrten über 20 Min)
 - **Angekommen**: SMS „ist jetzt da“
-- **Erledigt**: Danke-SMS; auf der Kundenseite kann der Kunde mit Sternen bewerten und sieht die Website des Betriebs (optional Link zu Google-Bewertungen). Der Link bleibt danach 7 Tage gültig
+- **Erledigt**: Danke-SMS; auf der Kundenseite kann der Kunde mit Sternen bewerten und sieht die Website des Betriebs („Bei Google bewerten“ öffnet direkt das Google-Bewertungsfenster, bereits getippter Text wird dafür kopiert). Der Link bleibt danach 7 Tage gültig
+- **SMS-Absender** (max. 11 Zeichen, Vorgabe des SMS-Standards) mit Vorschlägen aus dem Betriebsnamen und Vorschau
 - **SMS-Texte** in den Einstellungen selbst schreiben, mit Platzhaltern (`{kunde}`, `{monteur}`, `{betrieb}`, `{uhrzeit}`, `{link}`) und Vorschau; „Gleich da“, „Angekommen“ und „Danke“ lassen sich abschalten
 - **Auswertung** (Diagramm-Symbol oben): gesparte Rückfrage-Anrufe (Schätzung), wie viele Kunden den Link öffnen, Pünktlichkeit, verschickte SMS und alle Bewertungen mit Text, für 7/30/90 Tage. In der Demo mit Beispiel-Historie der letzten 60 Tage
 - Kundenseite aktualisiert sich selbst, mit Live-Karte (im Betrieb abschaltbar) und Anruf-Knopf

@@ -21,7 +21,7 @@ export async function seedDemo(query: Query) {
     if ((await query(`SELECT 1 FROM mitarbeiter LIMIT 1`)).length) return; // jemand nutzt die Demo-DB anders
     const [b] = await query<{ id: string }>(
       `INSERT INTO betrieb (name, telefon, sms_absender) VALUES ($1, $2, $3) RETURNING id`,
-      ["Elektro Maier", "+499171123456", "ElektroMaie"],
+      ["Elektro Maier", "+499171123456", "Maier"],
     );
     const hash = await passwortHash(DEMO_LOGIN.passwort);
     [chef] = await query<{ id: string; betrieb_id: string }>(
@@ -36,8 +36,12 @@ export async function seedDemo(query: Query) {
     );
   }
 
+  // Alter Demo-Absender war abgeschnitten ("ElektroMaie")
+  await query(`UPDATE betrieb SET sms_absender = 'Maier' WHERE id = $1 AND sms_absender = 'ElektroMaie'`, [chef!.betrieb_id]);
   // Demo: Beispiel-Website, damit die Kundenseite nach "erledigt" den Website-Knopf zeigt
   await query(`UPDATE betrieb SET website = 'https://example.com' WHERE id = $1 AND website IS NULL`, [chef!.betrieb_id]);
+  // Demo: Platzhalter statt echtem Google-Link, damit der Knopf „Bei Google bewerten“ zu sehen ist
+  await query(`UPDATE betrieb SET bewertung_link = 'https://example.com/google-bewertung' WHERE id = $1 AND bewertung_link IS NULL`, [chef!.betrieb_id]);
 
   await historieAnlegen(query, chef!.betrieb_id);
 
@@ -134,6 +138,7 @@ async function historieAnlegen(query: Query, betriebId: string) {
         ],
       );
       if (storniert) continue;
+      if (r() < 0.32) await query(`UPDATE auftrag SET google_klick_am = ${ts(ankunftMin + 150)} WHERE id = $1 AND $2::date IS NOT NULL`, [a!.id, datum]);
 
       const sms: [string, number][] = [["losgefahren", losMin]];
       if (verspaetet) sms.push(["verspaetung", losMin + 10]);

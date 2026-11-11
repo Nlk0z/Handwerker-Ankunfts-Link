@@ -61,6 +61,8 @@ export default async function AuswertungSeite({ searchParams }: { searchParams: 
         <Kachel titel="Kunden per SMS informiert" wert={zahl(a.informiert)} zusatz={`von ${zahl(a.auftraege)} Aufträgen`} />
         <Kachel titel="Link geöffnet" wert={prozent(a.geoeffnet, a.informiert)} zusatz={`${zahl(a.geoeffnet)} Kunden`} />
         <Kachel titel="Ankunft wie angekündigt" wert={prozent(a.puenktlich, a.mitAnkunft)} zusatz="höchstens 10 Min. später" />
+        <Kachel titel="Zu Google geschickt" wert={zahl(a.zuGoogle)} zusatz={`von ${zahl(a.erledigt)} erledigten Aufträgen`} />
+        <Kachel titel="Bewertungen in der App" wert={zahl(a.bewertungen.length)} zusatz={a.schnitt !== null ? `Ø ${zahl(a.schnitt, 1)} Sterne` : "noch keine"} />
         <Kachel titel="Verschickte SMS" wert={zahl(a.smsGesamt)} zusatz={a.sms.verspaetung ? `davon ${zahl(a.sms.verspaetung)} Verspätungen` : "keine Verspätung gemeldet"} />
       </div>
 

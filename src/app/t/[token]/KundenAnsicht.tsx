@@ -138,6 +138,15 @@ function Bewertung({ token, betrieb, schon, bewertungLink }: { token: string; be
   const [sterne, setSterne] = useState(0);
   const [text, setText] = useState("");
   const [stand, setStand] = useState<"offen" | "sendet" | "fertig" | "fehler">(schon ? "fertig" : "offen");
+  const [kopiert, setKopiert] = useState(false);
+
+  // Zu Google: geschriebenen Text mitnehmen (in die Zwischenablage) und den Klick zählen.
+  const zuGoogle = () => {
+    if (text.trim()) {
+      navigator.clipboard?.writeText(text.trim()).then(() => setKopiert(true)).catch(() => {});
+    }
+    fetch(`/api/t/${token}/google`, { method: "POST", keepalive: true }).catch(() => {});
+  };
 
   const senden = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,16 +164,21 @@ function Bewertung({ token, betrieb, schon, bewertungLink }: { token: string; be
     }
   };
 
+  const googleKnopf = bewertungLink && (
+    <a href={bewertungLink} target="_blank" rel="noreferrer" onClick={zuGoogle} className="knopf-haupt min-h-14 text-lg">
+      <Icon name="stern" /> Bei Google bewerten
+    </a>
+  );
+
   if (stand === "fertig") {
     return (
       <section className="karte space-y-3 text-center">
         <p className="text-lg font-bold">Danke für Ihre Bewertung!</p>
         {bewertungLink && (
           <>
-            <p className="text-sm text-stone-600">Sie würden {betrieb} sehr helfen, wenn Sie die Bewertung auch öffentlich teilen.</p>
-            <a href={bewertungLink} target="_blank" rel="noreferrer" className="knopf-haupt">
-              <Icon name="stern" /> Auch bei Google bewerten
-            </a>
+            <p className="text-sm text-stone-600">Möchten Sie sie auch bei Google teilen? Das hilft {betrieb} sehr.</p>
+            {googleKnopf}
+            {kopiert && <p className="text-xs text-stone-500">Ihr Text ist kopiert – bei Google einfach einfügen.</p>}
           </>
         )}
       </section>
@@ -172,35 +186,45 @@ function Bewertung({ token, betrieb, schon, bewertungLink }: { token: string; be
   }
 
   return (
-    <form onSubmit={senden} className="karte space-y-3">
-      <p className="text-center text-lg font-bold">Wie zufrieden waren Sie?</p>
-      <div className="flex justify-center gap-1" role="radiogroup" aria-label="Sterne">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <button
-            key={i}
-            type="button"
-            role="radio"
-            aria-checked={sterne === i}
-            aria-label={`${i} ${i === 1 ? "Stern" : "Sterne"}`}
-            onClick={() => setSterne(i)}
-            className={`rounded-full p-1 transition active:scale-90 ${i <= sterne ? "text-amber-500 [&_path]:fill-current" : "text-stone-300"}`}
-          >
-            <Icon name="stern" className="h-10 w-10" />
-          </button>
-        ))}
-      </div>
-      <textarea
-        className="eingabe min-h-24 py-2"
-        placeholder="Möchten Sie noch etwas sagen? (freiwillig)"
-        maxLength={1000}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      {stand === "fehler" && <p className="text-sm font-medium text-red-600">Das hat leider nicht geklappt. Bitte noch einmal versuchen.</p>}
-      <button type="submit" disabled={!sterne || stand === "sendet"} className="knopf-haupt">
-        {stand === "sendet" ? "Wird gesendet …" : "Bewertung abschicken"}
-      </button>
-    </form>
+    <>
+      {bewertungLink && (
+        <section className="karte space-y-3 text-center">
+          <p className="text-lg font-bold">Wie zufrieden waren Sie?</p>
+          <p className="text-sm text-stone-600">Eine Bewertung bei Google hilft {betrieb} am meisten. Das Bewertungsfenster öffnet sich direkt.</p>
+          {googleKnopf}
+          {kopiert && <p className="text-xs text-stone-500">Ihr Text ist kopiert – bei Google einfach einfügen.</p>}
+        </section>
+      )}
+      <form onSubmit={senden} className="karte space-y-3">
+        <p className="text-center font-semibold">{bewertungLink ? "Oder kurz hier bewerten (ohne Google-Konto)" : "Wie zufrieden waren Sie?"}</p>
+        <div className="flex justify-center gap-1" role="radiogroup" aria-label="Sterne">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <button
+              key={i}
+              type="button"
+              role="radio"
+              aria-checked={sterne === i}
+              aria-label={`${i} ${i === 1 ? "Stern" : "Sterne"}`}
+              onClick={() => setSterne(i)}
+              className={`rounded-full p-1 transition active:scale-90 ${i <= sterne ? "text-amber-500 [&_path]:fill-current" : "text-stone-300"}`}
+            >
+              <Icon name="stern" className="h-10 w-10" />
+            </button>
+          ))}
+        </div>
+        <textarea
+          className="eingabe min-h-24 py-2"
+          placeholder="Möchten Sie noch etwas sagen? (freiwillig)"
+          maxLength={1000}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        {stand === "fehler" && <p className="text-sm font-medium text-red-600">Das hat leider nicht geklappt. Bitte noch einmal versuchen.</p>}
+        <button type="submit" disabled={!sterne || stand === "sendet"} className={bewertungLink ? "knopf-zweit" : "knopf-haupt"}>
+          {stand === "sendet" ? "Wird gesendet …" : "Bewertung abschicken"}
+        </button>
+      </form>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 import "server-only";
 import { query } from "./db";
+import { absenderSaeubern } from "./absender";
 
 import type { SmsTyp } from "./smsTexte";
 export type { SmsTyp };
@@ -29,7 +30,7 @@ export async function sendeSms(opts: {
           to: opts.an,
           text: opts.text,
           // Absender: max. 11 Zeichen, nur Buchstaben/Ziffern
-          from: (opts.absender || "Handwerker").replace(/[^A-Za-z0-9]/g, "").slice(0, 11) || "Handwerker",
+          from: absenderSaeubern(opts.absender || "") || "Handwerker",
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { success?: string; messages?: { id?: string }[] };

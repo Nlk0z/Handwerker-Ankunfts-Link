@@ -14,6 +14,7 @@ export type Auswertung = {
   geoeffnet: number; // davon Link geöffnet
   mitAnkunft: number;
   puenktlich: number; // angekommen spätestens 10 Min. nach der zuletzt angekündigten Zeit
+  zuGoogle: number; // Kunden, die auf „Bei Google bewerten“ getippt haben
   sms: Record<string, number>;
   smsGesamt: number;
   bewertungen: { id: string; sterne: number; text: string | null; kunde_name: string; termin_datum: string }[];
@@ -39,7 +40,8 @@ export async function auswertung(betriebId: string, tage: number): Promise<Auswe
             count(*) FILTER (WHERE losgefahren_am IS NOT NULL AND link_aufrufe > 0)         AS geoeffnet,
             count(*) FILTER (WHERE angekommen_am IS NOT NULL AND eta IS NOT NULL)           AS mit_ankunft,
             count(*) FILTER (WHERE angekommen_am IS NOT NULL AND eta IS NOT NULL
-                               AND angekommen_am <= eta + interval '10 minutes')            AS puenktlich
+                               AND angekommen_am <= eta + interval '10 minutes')            AS puenktlich,
+            count(*) FILTER (WHERE google_klick_am IS NOT NULL)                             AS zu_google
        FROM auftrag
       WHERE betrieb_id = $1 AND termin_datum BETWEEN $2 AND $3`,
     [betriebId, von, bis],
@@ -75,6 +77,7 @@ export async function auswertung(betriebId: string, tage: number): Promise<Auswe
     geoeffnet: n("geoeffnet"),
     mitAnkunft: n("mit_ankunft"),
     puenktlich: n("puenktlich"),
+    zuGoogle: n("zu_google"),
     sms: smsMap,
     smsGesamt: Object.values(smsMap).reduce((a, b) => a + b, 0),
     bewertungen,

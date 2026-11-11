@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { abmelden, nutzerOderLogin, passwortHash } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
 import { minutenBis, normalisiereTelefon } from "@/lib/format";
+import { absenderSaeubern } from "@/lib/absender";
 import { SMS_INFO, SMS_TYPEN, type SmsVorlagen } from "@/lib/smsTexte";
 import {
   auftragLaden,
@@ -113,7 +114,11 @@ export async function einstellungenSpeichern(fd: FormData) {
   const telefon = text(fd, "telefon") ? normalisiereTelefon(text(fd, "telefon")) : null;
   if (text(fd, "telefon") && !telefon) redirect("/app/einstellungen?fehler=telefon");
   const website = adresse(text(fd, "website"));
-  const bewertungLink = adresse(text(fd, "bewertung_link"));
+  const googleEingabe = text(fd, "bewertung_link");
+  // Nur die Google-Place-ID eingegeben? Dann daraus den Link zum Bewertungsfenster bauen.
+  const bewertungLink = /^ChIJ[\w-]{10,}$/.test(googleEingabe)
+    ? `https://search.google.com/local/writereview?placeid=${googleEingabe}`
+    : adresse(googleEingabe);
   if (website === undefined || bewertungLink === undefined) redirect("/app/einstellungen?fehler=adresse");
   await query(
     `UPDATE betrieb SET name = $2, telefon = $3, sms_absender = $4, karte_aktiv = $5, website = $6, bewertung_link = $7
@@ -122,7 +127,7 @@ export async function einstellungenSpeichern(fd: FormData) {
       n.betrieb_id,
       text(fd, "name") || n.betrieb_name,
       telefon,
-      text(fd, "sms_absender").replace(/[^A-Za-z0-9]/g, "").slice(0, 11) || null,
+      absenderSaeubern(text(fd, "sms_absender")) || null,
       fd.get("karte_aktiv") === "on",
       website,
       bewertungLink,

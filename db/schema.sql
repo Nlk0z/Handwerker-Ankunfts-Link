@@ -95,3 +95,6 @@ CREATE TABLE IF NOT EXISTS bewertung (
 -- Wie oft der Kunde seinen Link geöffnet hat (für die Auswertung)
 ALTER TABLE auftrag ADD COLUMN IF NOT EXISTS link_aufrufe integer NOT NULL DEFAULT 0;
 ALTER TABLE auftrag ADD COLUMN IF NOT EXISTS link_erster_aufruf timestamptz;
+
+-- Hat der Kunde auf "Bei Google bewerten" getippt? (für die Auswertung)
+ALTER TABLE auftrag ADD COLUMN IF NOT EXISTS google_klick_am timestamptz;

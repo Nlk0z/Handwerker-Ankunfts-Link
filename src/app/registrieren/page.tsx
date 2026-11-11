@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { anmelden, passwortHash } from "@/lib/auth";
 import { eins } from "@/lib/db";
 import { normalisiereTelefon } from "@/lib/format";
+import { absenderSaeubern, absenderVorschlaege } from "@/lib/absender";
 import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ async function registrieren(formData: FormData) {
   if (f("telefon") && !telefon) redirect("/registrieren?fehler=telefon");
   const b = await eins<{ id: string }>(
     `INSERT INTO betrieb (name, telefon, sms_absender) VALUES ($1, $2, $3) RETURNING id`,
-    [f("betrieb"), telefon, f("betrieb").replace(/[^A-Za-z0-9]/g, "").slice(0, 11)],
+    [f("betrieb"), telefon, absenderVorschlaege(f("betrieb"))[0] ?? absenderSaeubern(f("betrieb"))],
   );
   const m = await eins<{ id: string }>(
     `INSERT INTO mitarbeiter (betrieb_id, name, email, passwort_hash, rolle)
