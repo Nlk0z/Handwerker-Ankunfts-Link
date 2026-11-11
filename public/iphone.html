@@ -98,6 +98,24 @@
   .sperre-fuss { position: absolute; bottom: 36px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 46px; pointer-events: none; }
   .sperre-fuss div { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; }
   .sperre-fuss svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; }
+  .sperre-wischen { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 13px; opacity: .8; pointer-events: none; }
+
+  /* Home-Bildschirm */
+  #homescreen { background: radial-gradient(120% 80% at 70% 10%, #ffcf9e 0%, #f08a3c 35%, #b8410f 70%, #4a1c0b 100%); color: #fff; }
+  .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px 0; padding: 22px 18px 0; }
+  .app { border: 0; background: none; color: #fff; font: inherit; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; padding: 0; position: relative; }
+  .app:active .symbol { filter: brightness(.8); }
+  .symbol { width: 62px; height: 62px; border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+  .symbol svg { width: 34px; height: 34px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .symbol svg.voll { fill: #fff; stroke: none; }
+  .zaehler { position: absolute; top: -6px; right: 4px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: #ff3b30; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .zaehler:empty { display: none; }
+  .dock { position: absolute; left: 12px; right: 12px; bottom: 26px; height: 92px; border-radius: 32px; background: rgba(255,255,255,.28); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; }
+  .dock .app span.name { display: none; }
+  .n-leer { color: #8e8e93; text-align: center; margin-top: 40px; font-size: 15px; }
+
+  /* Wischbalken unten: anklicken = zum Home-Bildschirm */
+  .home-knopf { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 26px; border: 0; background: none; cursor: pointer; z-index: 7; padding: 0; }
 
   /* 2) Nachrichten */
   #nachrichten { background: #fff; }
@@ -138,7 +156,7 @@
 <body>
 <header class="leiste">
   <h1><img src="/icon.svg" alt=""> iPhone-Vorschau · <span>Kommt gleich</span></h1>
-  <div class="tipp">Links tippst du als Handwerker auf „Losgefahren“. Rechts kommt beim Kunden die SMS an: Mitteilung antippen, dann den Link.</div>
+  <div class="tipp">Links tippst du als Handwerker auf „Losgefahren“. Rechts kommt beim Kunden die SMS an: Mitteilung oder „Nachrichten“ antippen, dann den Link. Der Balken unten am Kunden-iPhone führt zum Home-Bildschirm.</div>
   <label>Größe
     <select id="groesse" class="knopf">
       <option value="auto">Passend</option><option value="1">100 %</option><option value="0.8">80 %</option><option value="0.65">65 %</option>
@@ -188,6 +206,28 @@
           <div><svg viewBox="0 0 24 24"><path d="M9 3h6l-1 5 3 3v2H7v-2l3-3z"/><path d="M12 13v8"/></svg></div>
           <div><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-2.5h5L16 7"/></svg></div>
         </div>
+        <div class="sperre-wischen">Zum Öffnen klicken</div>
+      </section>
+
+      <!-- Home-Bildschirm -->
+      <section class="ansicht" id="homescreen">
+        <div style="height:54px;flex:none"></div>
+        <div class="apps">
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#5ac8fa,#0a84ff)"><svg viewBox="0 0 24 24"><path d="M7 17.5h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 17.5z"/></svg></span><span class="name">Wetter</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:#fff"><svg viewBox="0 0 24 24" style="stroke:#ff3b30"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M9 3v4M15 3v4"/></svg></span><span class="name">Kalender</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:#1c1c1e"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="name">Uhr</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#a2a2a7,#6e6e73)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></span><span class="name">Einstellungen</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#ffd60a,#ff9f0a)"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 15.5l-5-5-9 8.5"/></svg></span><span class="name">Fotos</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#ffcc00,#ff9500)"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span><span class="name">Notizen</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#34c759,#248a3d)"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg></span><span class="name">Karten</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#ff6482,#ff2d55)"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/></svg></span><span class="name">Musik</span></button>
+        </div>
+        <div class="dock">
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#5ef777,#28c840)"><svg class="voll" viewBox="0 0 24 24"><path d="M6.6 3.5h3l1.5 4-2 1.3a11 11 0 0 0 6.1 6.1l1.3-2 4 1.5v3a2 2 0 0 1-2.1 2A16.5 16.5 0 0 1 4.5 5.6a2 2 0 0 1 2.1-2.1z"/></svg></span><span class="name">Telefon</span></button>
+          <button class="app" type="button" data-app="internet"><span class="symbol" style="background:linear-gradient(#fff,#e5e5ea)"><svg viewBox="0 0 24 24" style="stroke:#0a84ff"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.3 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.3-3.5-8.5s1-6 3.5-8.5z"/></svg></span><span class="name">Internet</span></button>
+          <button class="app" type="button" data-app="nachrichten"><span class="symbol" style="background:linear-gradient(#5ef777,#28c840)"><svg class="voll" viewBox="0 0 24 24"><path d="M12 3.5c-5 0-9 3.3-9 7.4 0 2.4 1.4 4.5 3.5 5.9-.2 1.4-.9 2.6-1.9 3.4 2 0 3.8-.8 5-1.9.8.2 1.6.3 2.4.3 5 0 9-3.3 9-7.4s-4-7.7-9-7.7z"/></svg></span><span class="zaehler" id="zaehler"></span><span class="name">Nachrichten</span></button>
+          <button class="app" type="button" data-app="nix"><span class="symbol" style="background:linear-gradient(#8e8e93,#48484a)"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-2.5h5L16 7"/></svg></span><span class="name">Kamera</span></button>
+        </div>
       </section>
 
       <!-- 2) Nachrichten -->
@@ -225,6 +265,7 @@
       </section>
 
       <div class="home hell" id="kundenHome"></div>
+      <button class="home-knopf" id="homeKnopf" type="button" title="Zum Home-Bildschirm" aria-label="Zum Home-Bildschirm"></button>
     </div></div></div>
     <div class="hinweis" id="hinweis">Wartet auf eine SMS vom Betrieb …</div>
   </div>
@@ -261,6 +302,8 @@
   // ---------- Kunden-iPhone ----------
   let alleSms = [];          // alle Demo-SMS vom Server
   const gesehen = new Set(); // schon angezeigte SMS
+  const gelesen = new Set(); // in der Nachrichten-App geöffnete SMS
+  let letzterLink = null;    // zuletzt geöffneter Link (für die Internet-App)
   let kunde = null;          // { an, name, absender }
   let ansicht = "sperre";
   let bannerZeit = null;
@@ -269,15 +312,21 @@
 
   function zeigen(name) {
     ansicht = name;
-    for (const id of ["sperre", "nachrichten", "browser"]) $(id).classList.toggle("an", id === name);
-    const dunkel = name === "sperre";
+    for (const id of ["sperre", "homescreen", "nachrichten", "browser"]) $(id).classList.toggle("an", id === name);
+    const dunkel = name === "sperre" || name === "homescreen";
     $("kundenStatus").classList.toggle("hell", dunkel);
     $("kundenHome").classList.toggle("hell", dunkel);
-    if (name === "nachrichten") { zeichneVerlauf(); $("nVerlauf").scrollTop = 1e6; }
+    if (name === "nachrichten") { meineSms().forEach((s) => gelesen.add(s.id)); zeichneVerlauf(); $("nVerlauf").scrollTop = 1e6; }
+    zaehlerSetzen();
     hinweisSetzen();
   }
+  function zaehlerSetzen() {
+    const n = meineSms().filter((s) => !gelesen.has(s.id)).length;
+    $("zaehler").textContent = n ? String(n) : "";
+  }
   function hinweisSetzen() {
-    $("hinweis").textContent = !kunde ? "Wartet auf eine SMS vom Betrieb …"
+    $("hinweis").textContent = ansicht === "homescreen" ? "„Nachrichten“ antippen, um die SMS zu lesen."
+      : !kunde ? "Wartet auf eine SMS vom Betrieb …"
       : ansicht === "sperre" ? "Mitteilung antippen, um die SMS zu öffnen."
       : ansicht === "nachrichten" ? "Link in der SMS antippen."
       : "So sieht es der Kunde.";
@@ -306,7 +355,12 @@
   }
 
   function zeichneVerlauf() {
-    if (!kunde) return;
+    if (!kunde) {
+      $("nAvatar").textContent = "";
+      $("nName").textContent = "Nachrichten";
+      $("nVerlauf").innerHTML = '<div class="n-leer">Noch keine Nachrichten.<br>Links beim Handwerker auf „Losgefahren“ tippen.</div>';
+      return;
+    }
     $("nAvatar").textContent = initialen(kunde.absender) || "?";
     $("nName").textContent = kunde.absender;
     let html = "", letzterTag = "";
@@ -326,6 +380,7 @@
     let host = "";
     try { host = new URL(url).host; } catch {}
     $("bHost").textContent = host;
+    letzterLink = url;
     $("k").src = pfad(url);
     zeigen("browser");
   }
@@ -337,11 +392,12 @@
     bannerZeit = setTimeout(() => $("banner").classList.remove("zeigen"), 5000);
   }
 
-  function kundeWechseln(s) {
+  function kundeWechseln(s, sperren = true) {
     kunde = { an: s.an, name: s.kunde, absender: s.absender };
     $("kundeName").textContent = `Handy von ${s.kunde}`;
     $("k").removeAttribute("src");
-    zeigen("sperre");
+    letzterLink = null;
+    if (sperren || ansicht === "browser") zeigen("sperre");
   }
 
   async function smsAbholen(erstesMal = false) {
@@ -360,11 +416,15 @@
       if (liste.length) kundeWechseln(liste[liste.length - 1]);
     } else if (neue.length) {
       const letzte = neue[neue.length - 1];
-      if (!kunde || kunde.an !== letzte.an) kundeWechseln(letzte); // SMS an einen anderen Kunden: dessen Handy zeigen
-      else if (ansicht !== "sperre") banner(letzte);
+      if (kunde && kunde.an !== letzte.an) kundeWechseln(letzte); // SMS an einen anderen Kunden: dessen Handy zeigen
+      else {
+        if (!kunde) kundeWechseln(letzte, false); // erste SMS: Handy bleibt, wo es ist
+        if (ansicht !== "sperre") banner(letzte);
+      }
       if (ansicht === "nachrichten") { zeichneVerlauf(); $("nVerlauf").scrollTop = 1e6; }
     }
     zeichneSperre();
+    zaehlerSetzen();
     hinweisSetzen();
   }
   smsAbholen(true);
@@ -374,7 +434,21 @@
   $("mitteilungen").addEventListener("click", (e) => { if (e.target.closest(".mitteilung")) zeigen("nachrichten"); });
   $("banner").addEventListener("click", () => { $("banner").classList.remove("zeigen"); zeigen("nachrichten"); });
   $("nVerlauf").addEventListener("click", (e) => { const a = e.target.closest("a[data-link]"); if (a) linkOeffnen(a.dataset.link); });
-  $("nZurueck").addEventListener("click", () => zeigen("sperre"));
+  $("nZurueck").addEventListener("click", () => zeigen("homescreen"));
+  // Sperrbildschirm: irgendwo (außer auf eine Mitteilung) klicken = entsperren
+  $("sperre").addEventListener("click", (e) => { if (!e.target.closest(".mitteilung")) zeigen("homescreen"); });
+  $("homeKnopf").addEventListener("click", () => { $("banner").classList.remove("zeigen"); zeigen("homescreen"); });
+  $("homescreen").addEventListener("click", (e) => {
+    const app = e.target.closest(".app");
+    if (!app) return;
+    if (app.dataset.app === "nachrichten") zeigen("nachrichten");
+    else if (app.dataset.app === "internet") {
+      if (letzterLink) zeigen("browser");
+      else if (kunde) { const m = meineSms().map((s) => s.text.match(LINK)).filter(Boolean).pop(); if (m) linkOeffnen(m[1]); }
+    } else {
+      $("hinweis").textContent = "In der Demo funktionieren nur „Nachrichten“ und „Internet“.";
+    }
+  });
   $("bZurueck").addEventListener("click", () => zeigen("nachrichten"));
   $("bNeu").addEventListener("click", () => { try { $("k").contentWindow.location.reload(); } catch {} });
 
@@ -382,7 +456,7 @@
   $("zuruecksetzen").addEventListener("click", async () => {
     if (!confirm("Demo zurücksetzen? Alle Aufträge und SMS von heute werden neu angelegt.")) return;
     try { await fetch("/api/demo/zuruecksetzen", { method: "POST" }); } catch {}
-    alleSms = []; gesehen.clear(); kunde = null;
+    alleSms = []; gesehen.clear(); gelesen.clear(); kunde = null; letzterLink = null;
     $("kundeName").textContent = "bekommt die SMS";
     $("k").removeAttribute("src");
     zeigen("sperre"); zeichneSperre();
