@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { nutzerOderLogin } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
 import { absenderAusName, telefonAnzeige } from "@/lib/format";
@@ -32,7 +33,10 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">Einstellungen</h1>
+      <div className="flex items-center gap-2">
+        <Link href="/app" className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Zurück">‹</Link>
+        <h1 className="text-xl font-bold">Einstellungen</h1>
+      </div>
       {ok && <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-800 ring-1 ring-green-200">{MELDUNG[ok]}</p>}
       {fehler && <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{FEHLER[fehler]}</p>}
 
