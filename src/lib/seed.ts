@@ -13,8 +13,8 @@ export async function seedDemo(query: Query) {
   if (vorhanden.length) return;
 
   const [b] = await query<{ id: string }>(
-    `INSERT INTO betrieb (name, telefon, sms_absender) VALUES ($1, $2, $3) RETURNING id`,
-    ["Elektro Maier", "+499171123456", "ElektroMaie"],
+    `INSERT INTO betrieb (name, telefon) VALUES ($1, $2) RETURNING id`,
+    ["Elektro Maier", "+499171123456"],
   );
   const hash = await passwortHash(DEMO_LOGIN.passwort);
   const [chef] = await query<{ id: string }>(

@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { eins, query } from "./db";
 import { sendeSms, type KundenSmsTyp, type SmsTyp } from "./sms";
-import { telefonAnzeige, uhrzeit, zeitfenster } from "./format";
+import { smsAbsender, telefonAnzeige, uhrzeit, zeitfenster } from "./format";
 
 export type Status = "geplant" | "unterwegs" | "angekommen" | "erledigt" | "storniert";
 
@@ -110,7 +110,7 @@ async function smsZumAuftrag(a: Auftrag, typ: KundenSmsTyp, link: string) {
     bald_da: `${wer} ist in ca. 15 Minuten bei Ihnen (ca. ${zeit} Uhr). ${link}`,
     verspaetung: `Kleine Verspätung: ${wer} kommt jetzt ca. ${zeit} Uhr. Entschuldigung! ${link}`,
   };
-  return sendeSms({ auftragId: a.id, typ, an: a.kunde_telefon, text: texte[typ], absender: b?.sms_absender });
+  return sendeSms({ auftragId: a.id, typ, an: a.kunde_telefon, text: texte[typ], absender: smsAbsender(b?.sms_absender, b?.name ?? "") });
 }
 
 export async function losfahren(betriebId: string, id: string, minuten: number, link: string) {
@@ -207,5 +207,5 @@ export async function anrufWunschMelden(auftragId: string) {
 
   const termin = a.status === "unterwegs" && a.eta ? `Ankunft ca. ${uhrzeit(a.eta)} Uhr` : `Termin ${zeitfenster(a.fenster_von, a.fenster_bis)}`;
   const text = `Rückruf-Wunsch: ${a.kunde_name} bittet um kurzen Anruf. Tel. ${telefonAnzeige(a.kunde_telefon)} (${termin})`;
-  return sendeSms({ auftragId: a.id, typ: "anruf_wunsch", an: empfaenger.handy, text, absender: a.sms_absender });
+  return sendeSms({ auftragId: a.id, typ: "anruf_wunsch", an: empfaenger.handy, text, absender: smsAbsender(a.sms_absender, a.betrieb_name) });
 }

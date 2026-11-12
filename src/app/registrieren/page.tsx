@@ -18,8 +18,9 @@ async function registrieren(formData: FormData) {
 
   const telefon = f("telefon") ? normalisiereTelefon(f("telefon")) : null;
   const b = await eins<{ id: string }>(
-    `INSERT INTO betrieb (name, telefon, sms_absender) VALUES ($1, $2, $3) RETURNING id`,
-    [f("betrieb"), telefon, f("betrieb").replace(/[^A-Za-z0-9]/g, "").slice(0, 11)],
+    // SMS-Absender bleibt leer = wird automatisch aus dem Betriebsnamen gebildet
+    `INSERT INTO betrieb (name, telefon) VALUES ($1, $2) RETURNING id`,
+    [f("betrieb"), telefon],
   );
   const m = await eins<{ id: string }>(
     `INSERT INTO mitarbeiter (betrieb_id, name, email, passwort_hash, rolle)

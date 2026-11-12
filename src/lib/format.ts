@@ -59,3 +59,28 @@ export function initialen(name: string) {
     .map((t) => t[0]!.toUpperCase())
     .join("");
 }
+
+/**
+ * SMS-Absender aus dem Betriebsnamen. Das SMS-System erlaubt als Namen nur 11 Zeichen (A–Z, 0–9).
+ * "Elektro Müller GmbH" -> "ElektroMuel", "Bad & Heizung Huber e.K." -> "BadHeizungH"
+ */
+export function absenderAusName(name: string) {
+  const ohneUmlaute = name
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue")
+    .replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue").replace(/ß/g, "ss");
+  // Rechtsform weglassen, die bringt im Absender nichts
+  const ohneRechtsform = ohneUmlaute.replace(
+    /(&|\bund\b)\s*Co\.?(\s*KG)?|\b(GmbH|mbH|KG|OHG|GbR|UG|AG|e\.\s?K(fm|fr)?\.?|Inh\..*)(?=\s|$|\.)/gi,
+    " ",
+  );
+  const woerter = ohneRechtsform.split(/[^A-Za-z0-9]+/).filter(Boolean);
+  const zusammen = woerter.map((w) => w[0]!.toUpperCase() + w.slice(1)).join("").slice(0, 11);
+  // Nur Ziffern würde als Telefonnummer gelten -> dann lieber neutral
+  return /[A-Za-z]/.test(zusammen) ? zusammen : "Handwerker";
+}
+
+/** Eigener Absender (bereinigt) oder automatisch aus dem Namen. */
+export function smsAbsender(eigener: string | null | undefined, betriebName: string) {
+  const sauber = (eigener ?? "").replace(/[^A-Za-z0-9]/g, "").slice(0, 11);
+  return /[A-Za-z]/.test(sauber) ? sauber : absenderAusName(betriebName);
+}

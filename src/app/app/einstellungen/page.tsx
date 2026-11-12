@@ -1,6 +1,6 @@
 import { nutzerOderLogin } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
-import { telefonAnzeige } from "@/lib/format";
+import { absenderAusName, telefonAnzeige } from "@/lib/format";
 import { abmeldenAktion, einstellungenSpeichern, meinHandySpeichern, mitarbeiterAnlegen } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -57,8 +57,12 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
             <input className="eingabe" id="telefon" name="telefon" type="tel" defaultValue={b?.telefon ? telefonAnzeige(b.telefon) : ""} />
           </div>
           <div>
-            <label className="beschriftung" htmlFor="sms_absender">SMS-Absender (max. 11 Zeichen, ohne Leerzeichen)</label>
-            <input className="eingabe" id="sms_absender" name="sms_absender" maxLength={11} defaultValue={b?.sms_absender ?? ""} />
+            <label className="beschriftung" htmlFor="sms_absender">SMS-Absender (optional)</label>
+            <input className="eingabe" id="sms_absender" name="sms_absender" maxLength={11} defaultValue={b?.sms_absender ?? ""} placeholder={absenderAusName(b?.name ?? "")} />
+            <p className="mt-1 text-xs text-stone-500">
+              Leer lassen = automatisch aus dem Namen: <strong>{absenderAusName(b?.name ?? "")}</strong>.
+              Das SMS-System erlaubt als Absender nur 11 Buchstaben/Ziffern – der volle Name steht trotzdem im SMS-Text.
+            </p>
           </div>
           <label className="flex items-center justify-between gap-4 rounded-xl bg-stone-50 p-3">
             <span>
