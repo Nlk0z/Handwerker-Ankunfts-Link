@@ -16,7 +16,8 @@ const ANTWORT = {
   hinweis: ["✏️", "Hinweis"],
 } as const;
 
-const SMS_TYP = { losgefahren: "Losgefahren", bald_da: "Gleich da (15 Min)", verspaetung: "Verspätung" } as const;
+const SMS_TYP = { losgefahren: "Losgefahren", bald_da: "Gleich da (15 Min)", verspaetung: "Verspätung", anruf_wunsch: "Rückruf-Wunsch" } as const;
+const SMS_STATUS = { demo: "Demo – nicht verschickt", gesendet: "verschickt", fehler: "Fehler beim Senden" } as const;
 
 export default async function AuftragSeite({ params }: { params: Promise<{ id: string }> }) {
   const n = await nutzerOderLogin();
@@ -24,7 +25,9 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const a = await auftragLaden(n.betrieb_id, id);
   if (!a) notFound();
-  const sms = await benachrichtigungen(a.id);
+  const alleSms = await benachrichtigungen(a.id);
+  const sms = alleSms.filter((s) => s.typ !== "anruf_wunsch");
+  const anrufSms = alleSms.find((s) => s.typ === "anruf_wunsch");
   const antworten = await antwortenZumAuftrag(a.id);
   if (antworten.some((x) => !x.gelesen_am)) await antwortenGelesen(a.id);
   const link = `${await basisUrl()}/t/${a.link_token}`;
@@ -50,6 +53,13 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
                 <p className="text-xs text-stone-500">
                   {uhrzeit(x.erstellt_am)} Uhr{!x.gelesen_am && <span className="ml-2 font-semibold text-marke">Neu</span>}
                 </p>
+                {x.typ === "anrufen" && (
+                  <p className="mt-1 text-xs text-stone-500">
+                    {anrufSms
+                      ? `SMS an Monteur: ${SMS_STATUS[anrufSms.status as keyof typeof SMS_STATUS] ?? anrufSms.status} (${uhrzeit(anrufSms.gesendet_am)} Uhr)`
+                      : <>Keine SMS an Sie – <Link href="/app/einstellungen" className="text-marke underline">Handynummer hinterlegen</Link></>}
+                  </p>
+                )}
               </div>
               {x.typ === "anrufen" && (
                 <a href={`tel:${a.kunde_telefon}`} className="shrink-0 rounded-xl bg-marke px-3 py-2 text-sm font-semibold text-white active:bg-marke-dunkel">Anrufen</a>

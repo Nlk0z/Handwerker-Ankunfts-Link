@@ -27,7 +27,13 @@ if (await laeuft()) {
 } else {
   console.log("Starte die App …");
   const server = spawn("npx", ["next", "dev", "-p", PORT], { stdio: "inherit", shell: true });
-  process.on("SIGINT", () => server.kill());
+  // Strg+C: Server mit allen Unterprozessen beenden. Unter Windows reicht server.kill() nicht
+  // (beendet nur die Shell, "next dev" liefe im Hintergrund mit altem Stand weiter).
+  process.on("SIGINT", () => {
+    if (process.platform === "win32") spawn("taskkill", ["/pid", String(server.pid), "/T", "/F"], { stdio: "ignore" });
+    else server.kill();
+    process.exit(0);
+  });
   for (let i = 0; i < 120; i++) {
     await new Promise((r) => setTimeout(r, 1000));
     if (await laeuft()) {

@@ -93,6 +93,16 @@ export async function einstellungenSpeichern(fd: FormData) {
   redirect("/app/einstellungen?ok=1");
 }
 
+/** Eigene Handynummer für Meldungen (z. B. Rückruf-Wunsch eines Kunden). Darf jeder für sich selbst. */
+export async function meinHandySpeichern(fd: FormData) {
+  const n = await nutzerOderLogin();
+  const roh = text(fd, "handy");
+  const handy = roh ? normalisiereTelefon(roh) : null;
+  if (roh && !handy) redirect("/app/einstellungen?fehler=handy");
+  await query(`UPDATE mitarbeiter SET handy = $2 WHERE id = $1`, [n.id, handy]);
+  redirect("/app/einstellungen?ok=handy");
+}
+
 export async function mitarbeiterAnlegen(fd: FormData) {
   const n = await nutzerOderLogin();
   if (n.rolle !== "inhaber") redirect("/app/einstellungen");
@@ -100,9 +110,11 @@ export async function mitarbeiterAnlegen(fd: FormData) {
   const passwort = String(fd.get("passwort") ?? "");
   if (!text(fd, "name") || !email || passwort.length < 8) redirect("/app/einstellungen?fehler=mitarbeiter");
   if (await eins(`SELECT 1 FROM mitarbeiter WHERE lower(email) = $1`, [email])) redirect("/app/einstellungen?fehler=email");
+  const handy = text(fd, "handy") ? normalisiereTelefon(text(fd, "handy")) : null;
+  if (text(fd, "handy") && !handy) redirect("/app/einstellungen?fehler=handy");
   await query(
-    `INSERT INTO mitarbeiter (betrieb_id, name, email, passwort_hash, rolle) VALUES ($1,$2,$3,$4,'monteur')`,
-    [n.betrieb_id, text(fd, "name"), email, await passwortHash(passwort)],
+    `INSERT INTO mitarbeiter (betrieb_id, name, email, passwort_hash, rolle, handy) VALUES ($1,$2,$3,$4,'monteur',$5)`,
+    [n.betrieb_id, text(fd, "name"), email, await passwortHash(passwort), handy],
   );
   redirect("/app/einstellungen?ok=mitarbeiter");
 }

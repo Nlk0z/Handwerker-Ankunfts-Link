@@ -1,17 +1,19 @@
 import { nutzerOderLogin } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
 import { telefonAnzeige } from "@/lib/format";
-import { abmeldenAktion, einstellungenSpeichern, mitarbeiterAnlegen } from "../actions";
+import { abmeldenAktion, einstellungenSpeichern, meinHandySpeichern, mitarbeiterAnlegen } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 const MELDUNG: Record<string, string> = {
   "1": "Gespeichert ✓",
   mitarbeiter: "Mitarbeiter angelegt ✓",
+  handy: "Handynummer gespeichert ✓",
 };
 const FEHLER: Record<string, string> = {
   mitarbeiter: "Bitte Name, E-Mail und ein Passwort mit mind. 8 Zeichen angeben.",
   email: "Diese E-Mail ist schon vergeben.",
+  handy: "Diese Handynummer sieht nicht richtig aus.",
 };
 
 export default async function Einstellungen({ searchParams }: { searchParams: Promise<{ ok?: string; fehler?: string }> }) {
@@ -21,17 +23,27 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
     `SELECT name, telefon, sms_absender, karte_aktiv FROM betrieb WHERE id = $1`,
     [n.betrieb_id],
   );
-  const team = await query<{ id: string; name: string; email: string; rolle: string }>(
-    `SELECT id, name, email, rolle FROM mitarbeiter WHERE betrieb_id = $1 ORDER BY rolle, name`,
+  const team = await query<{ id: string; name: string; email: string; rolle: string; handy: string | null }>(
+    `SELECT id, name, email, rolle, handy FROM mitarbeiter WHERE betrieb_id = $1 ORDER BY rolle, name`,
     [n.betrieb_id],
   );
   const chef = n.rolle === "inhaber";
+  const ich = team.find((m) => m.id === n.id);
 
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Einstellungen</h1>
       {ok && <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-800 ring-1 ring-green-200">{MELDUNG[ok]}</p>}
       {fehler && <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{FEHLER[fehler]}</p>}
+
+      <form action={meinHandySpeichern} className="karte space-y-3">
+        <h2 className="font-semibold">Mein Handy</h2>
+        <p className="text-sm text-stone-500">
+          Bittet ein Kunde um Anruf, bekommen Sie sofort eine SMS mit seiner Nummer – einfach antippen und anrufen.
+        </p>
+        <input className="eingabe" name="handy" type="tel" placeholder="0171 1234567" defaultValue={ich?.handy ? telefonAnzeige(ich.handy) : ""} />
+        <button className="knopf-haupt" type="submit">Speichern</button>
+      </form>
 
       <form action={einstellungenSpeichern} className="karte space-y-4">
         <h2 className="font-semibold">Betrieb</h2>
@@ -67,7 +79,7 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
             <li key={m.id} className="flex items-center justify-between py-2">
               <div className="min-w-0">
                 <div className="truncate font-medium">{m.name}</div>
-                <div className="truncate text-sm text-stone-500">{m.email}</div>
+                <div className="truncate text-sm text-stone-500">{m.email}{m.handy ? ` · ${telefonAnzeige(m.handy)}` : ""}</div>
               </div>
               <span className="text-xs text-stone-500">{m.rolle === "inhaber" ? "Inhaber" : "Monteur"}</span>
             </li>
@@ -79,6 +91,7 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
             <form action={mitarbeiterAnlegen} className="mt-3 space-y-3">
               <input className="eingabe" name="name" placeholder="Name" required />
               <input className="eingabe" name="email" type="email" placeholder="E-Mail" required />
+              <input className="eingabe" name="handy" type="tel" placeholder="Handy (für Rückruf-Wünsche, optional)" />
               <input className="eingabe" name="passwort" type="password" placeholder="Start-Passwort (mind. 8 Zeichen)" minLength={8} required />
               <button className="knopf-haupt" type="submit">Anlegen</button>
             </form>

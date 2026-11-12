@@ -2,8 +2,8 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { eins, query } from "./db";
-import { sendeSms, type SmsTyp } from "./sms";
-import { uhrzeit } from "./format";
+import { sendeSms, type KundenSmsTyp, type SmsTyp } from "./sms";
+import { telefonAnzeige, uhrzeit, zeitfenster } from "./format";
 
 export type Status = "geplant" | "unterwegs" | "angekommen" | "erledigt" | "storniert";
 
@@ -98,14 +98,14 @@ export async function basisUrl() {
   return `${proto}://${host}`;
 }
 
-async function smsZumAuftrag(a: Auftrag, typ: SmsTyp, link: string) {
+async function smsZumAuftrag(a: Auftrag, typ: KundenSmsTyp, link: string) {
   const b = await eins<{ name: string; sms_absender: string | null }>(
     `SELECT name, sms_absender FROM betrieb WHERE id = $1`,
     [a.betrieb_id],
   );
   const wer = a.mitarbeiter_name ? `${a.mitarbeiter_name} von ${b?.name}` : b?.name;
   const zeit = uhrzeit(a.eta);
-  const texte: Record<SmsTyp, string> = {
+  const texte: Record<KundenSmsTyp, string> = {
     losgefahren: `Hallo ${a.kunde_name}, ${wer} ist losgefahren. Ankunft ca. ${zeit} Uhr. Live verfolgen: ${link}`,
     bald_da: `${wer} ist in ca. 15 Minuten bei Ihnen (ca. ${zeit} Uhr). ${link}`,
     verspaetung: `Kleine Verspätung: ${wer} kommt jetzt ca. ${zeit} Uhr. Entschuldigung! ${link}`,
@@ -175,4 +175,37 @@ export async function positionSpeichern(betriebId: string, id: string, lat: numb
       WHERE betrieb_id = $1 AND id = $2 AND status = 'unterwegs'`,
     [betriebId, id, lat, lng],
   );
+}
+
+/**
+ * Kunde hat "Bitte vorher anrufen" gedrückt: SMS an den zuständigen Monteur
+ * (ohne Handynummer an den Inhaber). Die Nummer in der SMS kann man direkt antippen.
+ * Höchstens eine solche SMS pro Auftrag in 30 Minuten.
+ */
+export async function anrufWunschMelden(auftragId: string) {
+  const a = await eins<Auftrag & { betrieb_name: string; sms_absender: string | null }>(
+    `SELECT ${SPALTEN}, b.name AS betrieb_name, b.sms_absender
+       ${VON} JOIN betrieb b ON b.id = a.betrieb_id WHERE a.id = $1`,
+    [auftragId],
+  );
+  if (!a) return null;
+  const schon = await eins(
+    `SELECT 1 FROM benachrichtigung WHERE auftrag_id = $1 AND typ = 'anruf_wunsch'
+        AND gesendet_am > now() - interval '30 minutes'`,
+    [auftragId],
+  );
+  if (schon) return null;
+
+  const empfaenger = await eins<{ handy: string }>(
+    `SELECT handy FROM mitarbeiter
+      WHERE betrieb_id = $1 AND handy IS NOT NULL
+      ORDER BY (id = $2) DESC, (rolle = 'inhaber') DESC, erstellt_am
+      LIMIT 1`,
+    [a.betrieb_id, a.mitarbeiter_id],
+  );
+  if (!empfaenger) return null;
+
+  const termin = a.status === "unterwegs" && a.eta ? `Ankunft ca. ${uhrzeit(a.eta)} Uhr` : `Termin ${zeitfenster(a.fenster_von, a.fenster_bis)}`;
+  const text = `Rückruf-Wunsch: ${a.kunde_name} bittet um kurzen Anruf. Tel. ${telefonAnzeige(a.kunde_telefon)} (${termin})`;
+  return sendeSms({ auftragId: a.id, typ: "anruf_wunsch", an: empfaenger.handy, text, absender: a.sms_absender });
 }

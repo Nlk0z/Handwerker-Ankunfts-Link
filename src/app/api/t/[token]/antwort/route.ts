@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { antwortSpeichern } from "@/lib/antworten";
+import { anrufWunschMelden } from "@/lib/auftraege";
 import { gueltigerAuftrag, kundenDaten } from "@/lib/kundensicht";
 
 export const dynamic = "force-dynamic";
@@ -22,5 +23,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
 
   const ergebnis = await antwortSpeichern(a.id, body.typ, body.text);
   if (!ergebnis.ok) return NextResponse.json({ fehler: ergebnis.fehler }, { status: 400 });
+  // Anruf-Wunsch: Monteur bekommt sofort eine SMS, muss also nicht in die App schauen
+  if (ergebnis.neu && body.typ === "anrufen") await anrufWunschMelden(a.id);
   return NextResponse.json(await kundenDaten(token), { headers: { "Cache-Control": "no-store" } });
 }

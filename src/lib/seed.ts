@@ -18,8 +18,8 @@ export async function seedDemo(query: Query) {
   );
   const hash = await passwortHash(DEMO_LOGIN.passwort);
   const [chef] = await query<{ id: string }>(
-    `INSERT INTO mitarbeiter (betrieb_id, name, email, passwort_hash, rolle)
-     VALUES ($1, 'Thomas Maier', $2, $3, 'inhaber') RETURNING id`,
+    `INSERT INTO mitarbeiter (betrieb_id, name, email, passwort_hash, rolle, handy)
+     VALUES ($1, 'Thomas Maier', $2, $3, 'inhaber', '+491761234567') RETURNING id`,
     [b!.id, DEMO_LOGIN.email, hash],
   );
   const [monteur] = await query<{ id: string }>(

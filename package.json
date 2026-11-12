@@ -10,7 +10,7 @@
     "screenshots": "node scripts/screenshots.mjs",
     "iphone": "node scripts/oeffnen.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "check": "npm run lint && npm run build"
+    "check": "npm run lint && node scripts/pruefbau.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.15",

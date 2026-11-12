@@ -31,7 +31,8 @@ export async function antwortenGelesen(auftragId: string) {
   ]);
 }
 
-export type AntwortErgebnis = { ok: true } | { ok: false; fehler: string };
+/** neu = false, wenn dieselbe Antwort gerade schon gespeichert war (doppelt getippt). */
+export type AntwortErgebnis = { ok: true; neu: boolean } | { ok: false; fehler: string };
 
 /**
  * Speichert eine Rückmeldung vom Kunden. Der Aufrufer hat den Link-Token schon geprüft.
@@ -55,8 +56,8 @@ export async function antwortSpeichern(auftragId: string, typ: unknown, roh: unk
     `SELECT typ, text FROM kunden_antwort WHERE auftrag_id = $1 ORDER BY erstellt_am DESC LIMIT 1`,
     [auftragId],
   );
-  if (letzte && letzte.typ === t && letzte.text === text) return { ok: true }; // doppelt getippt
+  if (letzte && letzte.typ === t && letzte.text === text) return { ok: true, neu: false }; // doppelt getippt
 
   await query(`INSERT INTO kunden_antwort (auftrag_id, typ, text) VALUES ($1, $2, $3)`, [auftragId, t, text]);
-  return { ok: true };
+  return { ok: true, neu: true };
 }

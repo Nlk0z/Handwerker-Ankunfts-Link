@@ -51,7 +51,7 @@ CREATE INDEX IF NOT EXISTS auftrag_betrieb_datum ON auftrag (betrieb_id, termin_
 CREATE TABLE IF NOT EXISTS benachrichtigung (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   auftrag_id   uuid NOT NULL REFERENCES auftrag(id) ON DELETE CASCADE,
-  typ          text NOT NULL CHECK (typ IN ('losgefahren', 'bald_da', 'verspaetung')),
+  typ          text NOT NULL CHECK (typ IN ('losgefahren', 'bald_da', 'verspaetung', 'anruf_wunsch')),
   text         text NOT NULL,
   status       text NOT NULL CHECK (status IN ('demo', 'gesendet', 'fehler')),
   anbieter_id  text,
@@ -72,3 +72,11 @@ CREATE TABLE IF NOT EXISTS kunden_antwort (
 );
 
 CREATE INDEX IF NOT EXISTS kunden_antwort_auftrag ON kunden_antwort (auftrag_id);
+
+-- Handynummer des Mitarbeiters: dorthin geht z. B. die SMS, wenn ein Kunde um Anruf bittet
+ALTER TABLE mitarbeiter ADD COLUMN IF NOT EXISTS handy text;
+
+-- Ältere Datenbanken: neuen SMS-Typ 'anruf_wunsch' (geht an den Monteur, nicht an den Kunden) erlauben
+ALTER TABLE benachrichtigung DROP CONSTRAINT IF EXISTS benachrichtigung_typ_check;
+ALTER TABLE benachrichtigung ADD CONSTRAINT benachrichtigung_typ_check
+  CHECK (typ IN ('losgefahren', 'bald_da', 'verspaetung', 'anruf_wunsch'));
