@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit",
+    "lint": "tsc --noEmit -p tsconfig.lint.json",
     "screenshots": "node scripts/screenshots.mjs",
     "iphone": "node scripts/oeffnen.mjs",
     "smoke": "node scripts/smoke.mjs",

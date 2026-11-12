@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { nutzerOderLogin } from "@/lib/auth";
+import { eins } from "@/lib/db";
 import { auftragLaden, basisUrl, benachrichtigungen } from "@/lib/auftraege";
 import { datumKurz, telefonAnzeige, uhrzeit, zeitfenster } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -32,6 +33,9 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
   const antworten = await antwortenZumAuftrag(a.id);
   // Hinweis zur Rückruf-SMS nur einmal zeigen, beim neuesten Anruf-Wunsch
   const neuesterAnruf = antworten.find((x) => x.typ === "anrufen")?.id;
+  const handyFehlt = neuesterAnruf && !anrufSms
+    ? !(await eins(`SELECT 1 FROM mitarbeiter WHERE betrieb_id = $1 AND handy IS NOT NULL LIMIT 1`, [n.betrieb_id]))
+    : false;
   if (antworten.some((x) => !x.gelesen_am)) await antwortenGelesen(a.id);
   const link = `${await basisUrl()}/t/${a.link_token}`;
 
@@ -56,11 +60,14 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
                 <p className="text-xs text-stone-500">
                   {uhrzeit(x.erstellt_am)} Uhr{!x.gelesen_am && <span className="ml-2 font-semibold text-marke">Neu</span>}
                 </p>
-                {x.id === neuesterAnruf && (
+                {x.id === neuesterAnruf && anrufSms && (
                   <p className="mt-1 text-xs text-stone-500">
-                    {anrufSms
-                      ? `SMS an Monteur: ${SMS_STATUS[anrufSms.status as keyof typeof SMS_STATUS] ?? anrufSms.status} (${uhrzeit(anrufSms.gesendet_am)} Uhr)`
-                      : <>Keine SMS an Sie – <Link href="/app/einstellungen" className="text-marke underline">Handynummer hinterlegen</Link></>}
+                    SMS an Monteur: {SMS_STATUS[anrufSms.status as keyof typeof SMS_STATUS] ?? anrufSms.status} ({uhrzeit(anrufSms.gesendet_am)} Uhr)
+                  </p>
+                )}
+                {x.id === neuesterAnruf && handyFehlt && (
+                  <p className="mt-1 text-xs text-stone-500">
+                    Keine SMS an Sie – <Link href="/app/einstellungen" className="text-marke underline">Handynummer hinterlegen</Link>
                   </p>
                 )}
               </div>

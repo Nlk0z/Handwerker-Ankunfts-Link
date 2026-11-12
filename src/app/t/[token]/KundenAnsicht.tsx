@@ -28,7 +28,14 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
     const t2 = setInterval(() => setJetzt(Date.now()), 15_000);
     const sichtbar = () => document.visibilityState === "visible" && laden();
     document.addEventListener("visibilitychange", sichtbar);
-    return () => { clearInterval(t1); clearInterval(t2); document.removeEventListener("visibilitychange", sichtbar); };
+    // Die iPhone-Vorschau stößt damit ein sofortiges Neuladen an
+    window.addEventListener("vorschau-aktualisieren", laden);
+    return () => {
+      clearInterval(t1);
+      clearInterval(t2);
+      document.removeEventListener("visibilitychange", sichtbar);
+      window.removeEventListener("vorschau-aktualisieren", laden);
+    };
   }, [token]);
 
   if (!d.gueltig) {

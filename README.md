@@ -19,13 +19,13 @@ npm install
 npm run iphone     # startet die App und öffnet http://localhost:3000/iphone
 ```
 
-Zwei iPhones nebeneinander: links die Handwerker-App, rechts das Handy des Kunden mit einer Nachrichten-App. Tippt der Handwerker auf „Losgefahren“, kommt rechts die SMS an; der Link darin öffnet die Kundenseite. In Claude Code gibt es dafür den Skill `iphone-vorschau`.
+Zwei iPhones nebeneinander: links die Handwerker-App, rechts das Handy des Kunden mit einer Nachrichten-App. Tippt der Handwerker auf „Losgefahren“, kommt rechts die SMS an; der Link darin öffnet die Kundenseite. Der Balken unten am iPhone führt zum Home-Bildschirm. In Claude Code gibt es dafür den Skill `iphone-vorschau`.
 
 ## Prüfen
 
 | Befehl | Was |
 |---|---|
-| `npm run check` | Typen + Build |
+| `npm run check` | Typen + Build (eigener Ordner `.next-pruef`, stört einen laufenden `npm run dev` nicht) |
 | `npm run smoke` | Rauchtest gegen die laufende App |
 | GitHub Actions „Prüfen“ | läuft bei jedem Push automatisch |
 

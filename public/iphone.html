@@ -58,8 +58,38 @@
   .statusbar {
     height: 54px; flex: none; display: flex; justify-content: space-between; align-items: center;
     padding: 6px 34px 0 46px; font: 600 16px -apple-system, "Segoe UI", sans-serif; color: #000; background: #fff;
+    position: relative; z-index: 2;
   }
-  .insel { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 2; }
+  /* Home-Bildschirm: der Balken unten am iPhone führt hierher, die App-Symbole wieder in die Apps */
+  .bildschirm.zuhause .statusbar { background: transparent; color: #fff; }
+  .bildschirm.zuhause .home { background: rgba(255,255,255,.92); }
+  .homescreen {
+    position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: space-between;
+    padding: 96px 26px 30px; background: linear-gradient(165deg, #10306e 0%, #3b3fa8 48%, #c2410c 100%);
+    font-family: -apple-system, "Segoe UI", sans-serif;
+  }
+  .homescreen[hidden] { display: none; }
+  .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 12px; justify-items: center; }
+  .dock { display: flex; justify-content: center; gap: 30px; padding: 14px 20px 10px; border-radius: 34px; background: rgba(255,255,255,.22); }
+  .app-knopf {
+    border: 0; background: none; padding: 0; border-radius: 0; flex-direction: column; gap: 6px;
+    color: #fff; font-size: 12px; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  }
+  .app-knopf[hidden] { display: none; }
+  .app-bild {
+    position: relative; width: 62px; height: 62px; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.28); transition: transform .1s;
+  }
+  .app-knopf:active .app-bild { transform: scale(.92); }
+  .app-bild img { width: 62px; height: 62px; border-radius: 15px; display: block; }
+  .app-bild.nachrichten { background: linear-gradient(180deg, #5ef27a, #10c23a); color: #fff; }
+  .app-bild.safari { background: #fff; }
+  .app-zahl {
+    position: absolute; top: -7px; right: -7px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+    background: #ff3b30; color: #fff; font-size: 13px; font-weight: 600; line-height: 22px; text-align: center; text-shadow: none;
+  }
+  .app-zahl[hidden] { display: none; }
+  .insel { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 3; }
   .symbole { display: flex; align-items: center; gap: 6px; }
   .icon { width: 1.15em; height: 1.15em; flex: none; vertical-align: -0.2em; }
   button { display: inline-flex; align-items: center; gap: 6px; }
@@ -70,7 +100,7 @@
   .hinweis.neu { color: var(--marke); font-weight: 600; }
   /* Anruf-Bildschirm: am PC gibt es kein Telefon, also zeigen wir den Anruf im iPhone selbst */
   .anruf {
-    position: absolute; inset: 0; z-index: 3; display: none; flex-direction: column; align-items: center;
+    position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; align-items: center;
     padding: 120px 30px 70px; color: #fff; text-align: center;
     background: linear-gradient(180deg, #3a3a3c 0%, #1c1c1e 100%);
     font-family: -apple-system, "Segoe UI", sans-serif;
@@ -111,7 +141,7 @@
   /* Zurück von der Ankunftsseite zu den Nachrichten (wie der kleine Rück-Link oben links in iOS) */
   .zurueck { flex: none; background: #fff; padding: 0 10px 4px; }
   .zurueck button { border: 0; background: none; padding: 2px 6px; gap: 2px; color: #007aff; font-size: 13px; }
-  .home-knopf { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 24px; z-index: 2; border: 0; background: none; padding: 0; cursor: pointer; }
+  .home-knopf { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 16px; z-index: 2; border: 0; background: none; padding: 0; cursor: pointer; }
   /* Mitteilung oben, wenn eine SMS ankommt, während die Ankunftsseite offen ist */
   .banner {
     position: absolute; top: 56px; left: 10px; right: 10px; z-index: 2; display: flex; gap: 10px; align-items: center; text-align: left;
@@ -128,7 +158,7 @@
 <body>
 <header>
   <h1><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> iPhone-Vorschau · <span>Kommt gleich</span></h1>
-  <div class="tipp">Links bedienst du die App als Handwerker. Rechts kommt die SMS beim Kunden an – ein Tipp auf den Link öffnet die Ankunftsseite.</div>
+  <div class="tipp">Links bedienst du die App als Handwerker. Rechts ist das Handy des Kunden: Die SMS kommt in „Nachrichten“ an. Der Balken unten am iPhone führt zum Home-Bildschirm.</div>
   <label>Größe
     <select id="groesse">
       <option value="auto">Passend</option><option value="1">100 %</option><option value="0.8">80 %</option><option value="0.65">65 %</option>
@@ -149,6 +179,10 @@
       <div class="insel"></div>
       <div class="statusbar"><span class="uhr">9:41</span><span class="symbole"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx=".7"/><rect x="5" y="5.5" width="3" height="6.5" rx=".7"/><rect x="10" y="3" width="3" height="9" rx=".7"/><rect x="15" y="0" width="3" height="12" rx=".7"/></svg><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg><svg viewBox="0 0 27 13" width="27" height="13" aria-hidden="true"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="19" height="9" rx="2" fill="currentColor"/><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" opacity=".45"/></svg></span></div>
       <iframe id="h" title="Handwerker-iPhone"></iframe>
+      <div class="homescreen" id="homeH" hidden>
+        <div class="apps"><button class="app-knopf" data-app="h:app"><span class="app-bild"><img src="/icon.svg" alt=""></span>Kommt gleich</button></div>
+      </div>
+      <button class="home-knopf" data-home="h" title="Zum Home-Bildschirm" aria-label="Zum Home-Bildschirm"></button>
       <div class="anruf" aria-live="polite"><div class="bild"><svg class="icon gross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="nummer"></div><div class="wer"></div><div class="zustand">Anruf …</div><div class="platz"></div><button class="auflegen" title="Auflegen" aria-label="Auflegen"><svg class="icon auflegen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button><div class="vorschau">Nur Vorschau – auf dem echten iPhone öffnet sich hier direkt die Telefon-App.</div></div>
       <div class="home"></div>
     </div></div></div>
@@ -172,11 +206,18 @@
         <div class="sms-eingabe">SMS-Nachricht</div>
       </div>
       <button class="banner" id="banner" hidden><span class="app"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><span class="inhalt"><span class="von" id="bannerVon"></span><br><span class="text" id="bannerText"></span></span></button>
-      <button class="home-knopf" id="homeKnopf" title="Zurück zu den Nachrichten" aria-label="Zurück zu den Nachrichten"></button>
+      <div class="homescreen" id="homeK">
+        <div class="apps"></div>
+        <div class="dock">
+          <button class="app-knopf" data-app="k:sms"><span class="app-bild nachrichten"><svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.5 4.8 3.8 6.2-.2 1.2-.8 2.5-1.8 3.5 2 0 3.8-.8 5-1.8 1 .2 2 .3 3 .3 5.5 0 10-3.6 10-8.2S17.5 3 12 3z"/></svg><span class="app-zahl" id="smsZahl" hidden></span></span>Nachrichten</button>
+          <button class="app-knopf" data-app="k:web" id="safariKnopf" hidden><span class="app-bild safari"><svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#007aff" stroke-width="1.6"/><polygon points="16.5 7.5 10.6 10.6 13.4 13.4" fill="#ff3b30"/><polygon points="7.5 16.5 10.6 10.6 13.4 13.4" fill="#c7c7cc"/></svg></span>Safari</button>
+        </div>
+      </div>
+      <button class="home-knopf" data-home="k" title="Zum Home-Bildschirm" aria-label="Zum Home-Bildschirm"></button>
       <div class="anruf" aria-live="polite"><div class="bild"><svg class="icon gross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="nummer"></div><div class="wer"></div><div class="zustand">Anruf …</div><div class="platz"></div><button class="auflegen" title="Auflegen" aria-label="Auflegen"><svg class="icon auflegen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button><div class="vorschau">Nur Vorschau – auf dem echten iPhone öffnet sich hier direkt die Telefon-App.</div></div>
       <div class="home"></div>
     </div></div></div>
-    <div class="hinweis" id="hinweis">Links einen Auftrag öffnen und auf „Losgefahren“ tippen.</div>
+    <div class="hinweis" id="hinweis">Links einen Auftrag öffnen und auf „Losgefahren“ tippen – die SMS kommt hier an.</div>
   </div>
 </main>
 
@@ -199,26 +240,46 @@
     rahmen[ziel].src = p;
   }
 
-  // Kunden-iPhone: entweder die Nachrichten-App ("sms") oder die Ankunftsseite im Browser ("web")
-  function kundeZeigen(was) {
+  // Was gerade auf den iPhones zu sehen ist.
+  // Handwerker: "home" (Home-Bildschirm) oder "app". Kunde: "home", "sms" (Nachrichten) oder "web" (Ankunftsseite).
+  const ansicht = { h: "app", k: "home" };
+  let ungelesen = 0; // SMS, die ankamen, während "Nachrichten" nicht offen war (rote Zahl am Symbol)
+
+  function zahlZeigen() {
+    $("smsZahl").hidden = !ungelesen;
+    $("smsZahl").textContent = ungelesen;
+  }
+
+  function zeigen(ziel, was) {
+    ansicht[ziel] = was;
+    rahmen[ziel].closest(".bildschirm").classList.toggle("zuhause", was === "home");
+    $(ziel === "h" ? "homeH" : "homeK").hidden = was !== "home";
+    if (ziel !== "k") return;
     $("smsApp").hidden = was !== "sms";
     $("zurueck").hidden = was !== "web";
-    if (was === "sms") $("banner").hidden = true;
+    if (was === "sms") {
+      $("banner").hidden = true;
+      ungelesen = 0;
+      zahlZeigen();
+      $("smsListe").scrollTop = $("smsListe").scrollHeight;
+    }
   }
-  const kundeImWeb = () => $("smsApp").hidden;
+  const kundeZeigen = (was) => zeigen("k", was);
+  zeigen("h", "app");
+  zeigen("k", "home");
 
   laden("h", params.get("h") || "/login");
 
   document.querySelectorAll("button[data-ziel]").forEach((b) => b.addEventListener("click", () => {
     const z = b.dataset.ziel;
-    if (z === "k") kundeZeigen("web");
+    zeigen(z, z === "k" ? "web" : "app");
     if (b.dataset.aktion === "los") laden(z, felder[z].value);
     else try { rahmen[z].contentWindow.location.reload(); } catch { laden(z, felder[z].value); }
   }));
   Object.entries(felder).forEach(([z, f]) => f.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
     laden(z, f.value);
-    if (z === "k") kundeZeigen("web");
+    zeigen(z, z === "k" ? "web" : "app");
   }));
   $("beideNeu").addEventListener("click", () => Object.values(rahmen).forEach((r) => { try { r.contentWindow.location.reload(); } catch {} }));
 
@@ -255,8 +316,11 @@
   function kundenWechseln(p) {
     kundenPfad = p;
     gezeigteSms = null;
+    ungelesen = 0;
+    zahlZeigen();
+    $("safariKnopf").hidden = false;
     laden("k", p);            // Ankunftsseite schon mal im Hintergrund laden
-    kundeZeigen("sms");
+    kundeZeigen("home");      // anderer Auftrag = anderer Kunde: sein Handy liegt erst mal auf dem Home-Bildschirm
     smsLaden();
   }
 
@@ -331,8 +395,11 @@
     }
     liste.scrollTop = liste.scrollHeight;
 
-    // Kommt eine SMS, während die Ankunftsseite offen ist: Mitteilung oben einblenden
-    if (!ersteLadung && kundeImWeb()) {
+    // "Nachrichten" ist nicht offen: rote Zahl am App-Symbol
+    if (ansicht.k !== "sms") { ungelesen += neue.length; zahlZeigen(); }
+
+    // Kommt eine SMS, während der Kunde woanders ist (Home-Bildschirm, Ankunftsseite): Mitteilung oben einblenden
+    if (!ersteLadung && ansicht.k !== "sms") {
       const letzte = neue[neue.length - 1];
       $("bannerVon").textContent = daten.absender || "Nachrichten";
       $("bannerText").textContent = letzte.text;
@@ -350,11 +417,22 @@
     const p = pfad(params.get("k"));
     laden("k", p);
     kundeZeigen("web");
-    if (p.startsWith("/t/")) { kundenPfad = p; letzterLink = location.origin + p; smsLaden(); }
+    if (p.startsWith("/t/")) { kundenPfad = p; letzterLink = location.origin + p; $("safariKnopf").hidden = false; smsLaden(); }
   }
 
   $("zurueckKnopf").addEventListener("click", () => kundeZeigen("sms"));
-  $("homeKnopf").addEventListener("click", () => kundeZeigen("sms"));
+  // Balken unten am iPhone: zum Home-Bildschirm. App-Symbole: zurück in die App.
+  document.querySelectorAll("[data-home]").forEach((b) => b.addEventListener("click", () => zeigen(b.dataset.home, "home")));
+  document.querySelectorAll("[data-app]").forEach((b) => b.addEventListener("click", () => {
+    const [ziel, was] = b.dataset.app.split(":");
+    if (ziel === "k" && was === "web") { if (kundenPfad) seiteOeffnen(kundenPfad); }
+    else zeigen(ziel, was);
+  }));
+
+  // Beide Seiten zügig aktuell halten, damit man Änderungen des anderen sofort sieht
+  setInterval(() => Object.values(rahmen).forEach((r) => {
+    try { r.contentWindow.dispatchEvent(new Event("vorschau-aktualisieren")); } catch {}
+  }), 3000);
   $("banner").addEventListener("click", () => kundeZeigen("sms"));
 
   // Telefon-Links (tel:) im iPhone abfangen: statt Windows-Dialog den Anruf-Bildschirm im Rahmen zeigen
@@ -375,6 +453,9 @@
   }));
   Object.values(rahmen).forEach((r) => r.addEventListener("load", () => {
     try {
+      const stil = r.contentDocument.createElement("style");
+      stil.textContent = "html{scrollbar-width:none}::-webkit-scrollbar{display:none}";
+      r.contentDocument.head.append(stil);
       r.contentDocument.addEventListener("click", (e) => {
         const link = e.target.closest && e.target.closest('a[href^="tel:"]');
         if (!link) return;

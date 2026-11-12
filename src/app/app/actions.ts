@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { abmelden, nutzerOderLogin, passwortHash } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
-import { normalisiereTelefon, normalisiereWebsite } from "@/lib/format";
+import { absenderAusName, normalisiereTelefon, normalisiereWebsite } from "@/lib/format";
 import {
   auftragLaden,
   basisUrl,
@@ -81,13 +81,16 @@ export async function einstellungenSpeichern(fd: FormData) {
   const telefon = text(fd, "telefon") ? normalisiereTelefon(text(fd, "telefon")) : null;
   const website = text(fd, "website") ? normalisiereWebsite(text(fd, "website")) : null;
   if (text(fd, "website") && !website) redirect("/app/einstellungen?fehler=website");
+  const name = text(fd, "name") || n.betrieb_name;
+  // Eigener Absender nur, wenn er vom automatischen abweicht – sonst zieht er bei Namensänderungen mit
+  const eigener = text(fd, "sms_absender").replace(/[^A-Za-z0-9]/g, "").slice(0, 11);
   await query(
     `UPDATE betrieb SET name = $2, telefon = $3, sms_absender = $4, karte_aktiv = $5, website = $6 WHERE id = $1`,
     [
       n.betrieb_id,
-      text(fd, "name") || n.betrieb_name,
+      name,
       telefon,
-      text(fd, "sms_absender").replace(/[^A-Za-z0-9]/g, "").slice(0, 11) || null,
+      eigener && eigener !== absenderAusName(name) ? eigener : null,
       fd.get("karte_aktiv") === "on",
       website,
     ],

@@ -6,7 +6,7 @@ description: Zeigt die Handwerker-SMS-App („Kommt gleich“) auf dem PC in zwe
 # iPhone-Vorschau
 
 Die App läuft lokal mit Next.js. `/iphone` (Datei `public/iphone.html`) zeigt zwei iPhones (393 × 852, wie iPhone 15/16):
-links die Handwerker-App, rechts das Kunden-iPhone mit einer Nachrichten-App. Tippt der Handwerker auf „Losgefahren“, kommt rechts die SMS an; ein Tipp auf den Link öffnet die Kundenseite, „‹ Nachrichten“ oder der Balken unten führt zurück. Anruf-Knöpfe zeigen einen Anruf-Bildschirm im iPhone.
+links die Handwerker-App, rechts das Kunden-iPhone mit einer Nachrichten-App. Tippt der Handwerker auf „Losgefahren“, kommt rechts die SMS an; ein Tipp auf den Link öffnet die Kundenseite. Der Balken unten am iPhone führt (bei beiden) zum Home-Bildschirm, von dort öffnen die App-Symbole „Nachrichten“, „Safari“ bzw. „Kommt gleich“ wieder die App. Anruf-Knöpfe zeigen einen Anruf-Bildschirm im iPhone.
 
 ## In der Claude-Desktop-App (Browser-Pane)
 1. `preview_start` mit `name: "handwerker-sms"` (aus `.claude/launch.json`, startet `npm run dev` auf Port 3000).

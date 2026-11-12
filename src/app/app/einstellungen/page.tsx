@@ -114,12 +114,13 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
         <h2 className="font-semibold">Team</h2>
         <ul className="divide-y divide-stone-100">
           {team.map((m) => (
-            <li key={m.id} className="flex items-center justify-between py-2">
+            <li key={m.id} className="flex items-center justify-between gap-3 py-2">
               <div className="min-w-0">
                 <div className="truncate font-medium">{m.name}</div>
-                <div className="truncate text-sm text-stone-500">{m.email}{m.handy ? ` · ${telefonAnzeige(m.handy)}` : ""}</div>
+                <div className="truncate text-sm text-stone-500">{m.email}</div>
+                {m.handy && <div className="text-sm text-stone-500">{telefonAnzeige(m.handy)}</div>}
               </div>
-              <span className="text-xs text-stone-500">{m.rolle === "inhaber" ? "Inhaber" : "Monteur"}</span>
+              <span className="shrink-0 text-xs text-stone-500">{m.rolle === "inhaber" ? "Inhaber" : "Monteur"}</span>
             </li>
           ))}
         </ul>
@@ -129,7 +130,7 @@ export default async function Einstellungen({ searchParams }: { searchParams: Pr
             <form action={mitarbeiterAnlegen} className="mt-3 space-y-3">
               <input className="eingabe" name="name" placeholder="Name" required />
               <input className="eingabe" name="email" type="email" placeholder="E-Mail" required />
-              <input className="eingabe" name="handy" type="tel" placeholder="Handy (für Rückruf-Wünsche, optional)" />
+              <input className="eingabe" name="handy" type="tel" placeholder="Handy (optional)" />
               <input className="eingabe" name="passwort" type="password" placeholder="Start-Passwort (mind. 8 Zeichen)" minLength={8} required />
               <button className="knopf-haupt" type="submit">Anlegen</button>
             </form>
