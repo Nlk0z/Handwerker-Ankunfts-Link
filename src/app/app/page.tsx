@@ -3,6 +3,7 @@ import { nutzerOderLogin } from "@/lib/auth";
 import { auftraegeAmTag } from "@/lib/auftraege";
 import { datumKurz, heute, uhrzeit, zeitfenster } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { AutoAktualisieren } from "@/components/AutoAktualisieren";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
 
   return (
     <div className="space-y-4">
+      <AutoAktualisieren />
       <div className="flex items-center justify-between">
         <Link href={`/app?datum=${tagVerschieben(datum, -1)}`} className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Vorheriger Tag">‹</Link>
         <div className="text-center">
@@ -48,6 +50,11 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
                 </div>
                 <StatusBadge status={a.status} />
               </div>
+              {a.neue_antworten > 0 && (
+                <div className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${a.anruf_gewuenscht ? "bg-marke text-white" : "bg-orange-100 text-orange-800"}`}>
+                  {a.anruf_gewuenscht ? "📞 Kunde bittet um Anruf" : `💬 ${a.neue_antworten === 1 ? "Neue Rückmeldung" : `${a.neue_antworten} neue Rückmeldungen`}`}
+                </div>
+              )}
               <div className="mt-3 flex items-center justify-between text-sm">
                 <span className="font-medium text-stone-700">🕗 {zeitfenster(a.fenster_von, a.fenster_bis)}</span>
                 {a.status === "unterwegs" && a.eta ? (

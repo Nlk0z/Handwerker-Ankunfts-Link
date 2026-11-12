@@ -5,8 +5,16 @@ import { auftragLaden, basisUrl, benachrichtigungen } from "@/lib/auftraege";
 import { datumKurz, telefonAnzeige, uhrzeit, zeitfenster } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Steuerung } from "./Steuerung";
+import { antwortenGelesen, antwortenZumAuftrag } from "@/lib/antworten";
+import { AutoAktualisieren } from "@/components/AutoAktualisieren";
 
 export const dynamic = "force-dynamic";
+
+const ANTWORT = {
+  passt: ["👍", "Passt, bin da"],
+  anrufen: ["📞", "Bitte vorher kurz anrufen"],
+  hinweis: ["✏️", "Hinweis"],
+} as const;
 
 const SMS_TYP = { losgefahren: "Losgefahren", bald_da: "Gleich da (15 Min)", verspaetung: "Verspätung" } as const;
 
@@ -17,6 +25,8 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
   const a = await auftragLaden(n.betrieb_id, id);
   if (!a) notFound();
   const sms = await benachrichtigungen(a.id);
+  const antworten = await antwortenZumAuftrag(a.id);
+  if (antworten.some((x) => !x.gelesen_am)) await antwortenGelesen(a.id);
   const link = `${await basisUrl()}/t/${a.link_token}`;
 
   return (
@@ -26,6 +36,28 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
         <h1 className="min-w-0 flex-1 truncate text-xl font-bold">{a.kunde_name}</h1>
         <StatusBadge status={a.status} />
       </div>
+
+      <AutoAktualisieren />
+
+      {antworten.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">Rückmeldung vom Kunden</h2>
+          {antworten.map((x) => (
+            <div key={x.id} className={`karte flex items-start gap-3 text-[15px] ${x.typ === "anrufen" ? "ring-2 ring-marke" : ""}`}>
+              <span className="text-xl leading-6">{ANTWORT[x.typ][0]}</span>
+              <div className="min-w-0 flex-1">
+                <p className="break-words font-medium">{x.typ === "hinweis" ? x.text : ANTWORT[x.typ][1]}</p>
+                <p className="text-xs text-stone-500">
+                  {uhrzeit(x.erstellt_am)} Uhr{!x.gelesen_am && <span className="ml-2 font-semibold text-marke">Neu</span>}
+                </p>
+              </div>
+              {x.typ === "anrufen" && (
+                <a href={`tel:${a.kunde_telefon}`} className="shrink-0 rounded-xl bg-marke px-3 py-2 text-sm font-semibold text-white active:bg-marke-dunkel">Anrufen</a>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
 
       <div className="karte space-y-2 text-[15px]">
         <Zeile label="Termin">{datumKurz(a.termin_datum)}, {zeitfenster(a.fenster_von, a.fenster_bis)}</Zeile>

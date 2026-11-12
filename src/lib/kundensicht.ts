@@ -1,5 +1,6 @@
 import "server-only";
 import { auftragPerToken, baldDaPruefen, basisUrl } from "./auftraege";
+import { antwortenZumAuftrag, type AntwortTyp } from "./antworten";
 
 /** Nur das, was der Kunde sehen darf (keine Telefonnummer, keine Notiz). */
 export type KundenDaten = {
@@ -13,12 +14,23 @@ export type KundenDaten = {
   fensterBis: string | null;
   eta: string | null;
   position: { lat: number; lng: number; zeit: string } | null;
+  /** Nur solange der Termin noch bevorsteht oder läuft, kann der Kunde antworten. */
+  kannAntworten: boolean;
+  /** Eigene Rückmeldungen des Kunden, neueste zuerst. */
+  antworten: { id: string; typ: AntwortTyp; text: string | null; zeit: string; gelesen: boolean }[];
 };
 
+/** Prüft den Link und gibt den Auftrag zurück, wenn er noch gültig ist. */
+export async function gueltigerAuftrag(token: string) {
+  if (!/^[A-Za-z0-9_-]{10,40}$/.test(token)) return null;
+  const a = await auftragPerToken(token);
+  if (!a || new Date(a.link_gueltig_bis) < new Date()) return null;
+  return a;
+}
+
 export async function kundenDaten(token: string): Promise<KundenDaten | { gueltig: false }> {
-  if (!/^[A-Za-z0-9_-]{10,40}$/.test(token)) return { gueltig: false };
-  let a = await auftragPerToken(token);
-  if (!a || new Date(a.link_gueltig_bis) < new Date()) return { gueltig: false };
+  let a = await gueltigerAuftrag(token);
+  if (!a) return { gueltig: false };
 
   // Gelegenheit nutzen: ist die 15-Minuten-SMS fällig?
   if (a.status === "unterwegs") {
@@ -44,5 +56,13 @@ export async function kundenDaten(token: string): Promise<KundenDaten | { guelti
     fensterBis: a.fenster_bis,
     eta: a.eta ? new Date(a.eta).toISOString() : null,
     position,
+    kannAntworten: a.status === "geplant" || a.status === "unterwegs",
+    antworten: (await antwortenZumAuftrag(a.id)).map((x) => ({
+      id: x.id,
+      typ: x.typ,
+      text: x.text,
+      zeit: new Date(x.erstellt_am).toISOString(),
+      gelesen: x.gelesen_am != null,
+    })),
   };
 }

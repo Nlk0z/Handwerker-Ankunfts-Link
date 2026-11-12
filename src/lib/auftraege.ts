@@ -51,8 +51,11 @@ export function gueltigBis(terminDatum: string) {
 }
 
 export async function auftraegeAmTag(betriebId: string, datum: string) {
-  return query<Auftrag>(
-    `SELECT ${SPALTEN} ${VON}
+  return query<Auftrag & { neue_antworten: number; anruf_gewuenscht: boolean }>(
+    `SELECT ${SPALTEN},
+            (SELECT count(*)::int FROM kunden_antwort k WHERE k.auftrag_id = a.id AND k.gelesen_am IS NULL) AS neue_antworten,
+            EXISTS (SELECT 1 FROM kunden_antwort k WHERE k.auftrag_id = a.id AND k.gelesen_am IS NULL AND k.typ = 'anrufen') AS anruf_gewuenscht
+       ${VON}
       WHERE a.betrieb_id = $1 AND a.termin_datum = $2
       ORDER BY (a.status IN ('erledigt','storniert')), a.fenster_von NULLS LAST, a.erstellt_am`,
     [betriebId, datum],

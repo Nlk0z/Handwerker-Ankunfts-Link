@@ -38,6 +38,7 @@ Zwei iPhones nebeneinander: links die Handwerker-App, rechts die Kundenseite. So
 - **Verspätung melden**: Der Kunde bekommt eine SMS mit der neuen Uhrzeit
 - **In 15 Minuten da**: Diese SMS geht automatisch raus (bei Fahrten über 20 Min)
 - **Angekommen / Erledigt**: Danach läuft der Kundenlink ab
+- **Kunde kann antworten**: „Passt, ich bin da“, „Bitte vorher kurz anrufen“ oder ein kurzer Hinweis (z. B. Klingel kaputt). Der Handwerker sieht das im Auftrag und in der Tagesliste, der Kunde sieht „gelesen“
 - Kundenseite aktualisiert sich selbst, mit Live-Karte (im Betrieb abschaltbar) und Anruf-Knopf
 - Als Web-App zum Home-Bildschirm hinzufügbar
 

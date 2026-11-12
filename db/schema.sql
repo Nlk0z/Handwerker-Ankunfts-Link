@@ -60,3 +60,15 @@ CREATE TABLE IF NOT EXISTS benachrichtigung (
 );
 
 CREATE INDEX IF NOT EXISTS benachrichtigung_auftrag ON benachrichtigung (auftrag_id);
+
+-- Rückmeldungen des Kunden über die Kundenseite (z. B. "Passt", "Bitte vorher anrufen", Hinweis)
+CREATE TABLE IF NOT EXISTS kunden_antwort (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  auftrag_id   uuid NOT NULL REFERENCES auftrag(id) ON DELETE CASCADE,
+  typ          text NOT NULL CHECK (typ IN ('passt', 'anrufen', 'hinweis')),
+  text         text,                       -- nur bei typ = 'hinweis', max. 300 Zeichen
+  gelesen_am   timestamptz,
+  erstellt_am  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS kunden_antwort_auftrag ON kunden_antwort (auftrag_id);

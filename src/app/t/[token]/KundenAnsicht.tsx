@@ -100,6 +100,10 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
         </section>
       )}
 
+      {(d.kannAntworten || d.antworten.length > 0) && (
+        <Rueckmeldung token={token} daten={d} wer={wer} onNeu={setD} />
+      )}
+
       {d.betriebTelefon && d.status !== "erledigt" && (
         <a href={`tel:${d.betriebTelefon}`} className="knopf-zweit">📞 {d.betrieb} anrufen ({telefonAnzeige(d.betriebTelefon)})</a>
       )}
@@ -108,6 +112,86 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
         Kein App-Download nötig · Diese Seite aktualisiert sich von selbst
       </footer>
     </main>
+  );
+}
+
+const ANTWORT_TEXT: Record<KundenDaten["antworten"][number]["typ"], string> = {
+  passt: "👍 Passt, ich bin da",
+  anrufen: "📞 Bitte vorher kurz anrufen",
+  hinweis: "✏️ Hinweis",
+};
+
+function Rueckmeldung({ token, daten, wer, onNeu }: { token: string; daten: KundenDaten; wer: string; onNeu: (d: Daten) => void }) {
+  const [hinweisOffen, setHinweisOffen] = useState(false);
+  const [hinweis, setHinweis] = useState("");
+  const [sendet, setSendet] = useState(false);
+  const [fehler, setFehler] = useState("");
+
+  async function senden(typ: "passt" | "anrufen" | "hinweis", text?: string) {
+    setSendet(true);
+    setFehler("");
+    try {
+      const r = await fetch(`/api/t/${token}/antwort`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ typ, text }),
+      });
+      const j = await r.json();
+      if (!r.ok) { setFehler(j.fehler ?? "Senden hat nicht geklappt."); return; }
+      onNeu(j);
+      setHinweis("");
+      setHinweisOffen(false);
+    } catch {
+      setFehler("Keine Verbindung. Bitte nochmal versuchen.");
+    } finally {
+      setSendet(false);
+    }
+  }
+
+  return (
+    <section className="karte space-y-3">
+      <p className="font-semibold">{daten.kannAntworten ? `Kurze Rückmeldung an ${wer}` : "Ihre Nachrichten"}</p>
+
+      {daten.kannAntworten && (
+        hinweisOffen ? (
+          <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); senden("hinweis", hinweis); }}>
+            <textarea
+              className="eingabe min-h-24 py-2"
+              maxLength={300}
+              autoFocus
+              placeholder="z. B. Klingel geht nicht – bitte klopfen. Parken im Hof."
+              value={hinweis}
+              onChange={(e) => setHinweis(e.target.value)}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" className="knopf-zweit text-stone-500" onClick={() => setHinweisOffen(false)}>Abbruch</button>
+              <button type="submit" className="knopf-haupt" disabled={sendet || !hinweis.trim()}>Senden</button>
+            </div>
+          </form>
+        ) : (
+          <div className="grid gap-2">
+            <button className="knopf-zweit" disabled={sendet} onClick={() => senden("passt")}>👍 Passt, ich bin da</button>
+            <button className="knopf-zweit" disabled={sendet} onClick={() => senden("anrufen")}>📞 Bitte vorher kurz anrufen</button>
+            <button className="knopf-zweit" disabled={sendet} onClick={() => setHinweisOffen(true)}>✏️ Hinweis schreiben</button>
+          </div>
+        )
+      )}
+
+      {fehler && <p className="text-sm font-medium text-red-600">{fehler}</p>}
+
+      {daten.antworten.length > 0 && (
+        <ul className="space-y-2 border-t border-stone-100 pt-3">
+          {daten.antworten.map((a) => (
+            <li key={a.id} className="rounded-xl bg-orange-50 px-3 py-2 text-sm">
+              <div className="font-medium">{a.typ === "hinweis" ? a.text : ANTWORT_TEXT[a.typ]}</div>
+              <div className="mt-0.5 text-xs text-stone-500">
+                {uhrzeit(a.zeit)} Uhr · {a.gelesen ? "✓✓ gelesen" : "✓ übermittelt"}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
