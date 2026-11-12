@@ -6,12 +6,12 @@ description: Zeigt die Handwerker-SMS-App („Kommt gleich“) auf dem PC in zwe
 # iPhone-Vorschau
 
 Die App läuft lokal mit Next.js. `/iphone` (Datei `public/iphone.html`) zeigt zwei iPhones (393 × 852, wie iPhone 15/16):
-links die Handwerker-App, rechts die Kundenseite. Sobald links ein Kundenlink (`/t/…`) sichtbar ist, lädt ihn das rechte iPhone automatisch.
+links die Handwerker-App, rechts das Kunden-iPhone mit einer Nachrichten-App. Tippt der Handwerker auf „Losgefahren“, kommt rechts die SMS an; ein Tipp auf den Link öffnet die Kundenseite, „‹ Nachrichten“ oder der Balken unten führt zurück. Anruf-Knöpfe zeigen einen Anruf-Bildschirm im iPhone.
 
 ## In der Claude-Desktop-App (Browser-Pane)
 1. `preview_start` mit `name: "handwerker-sms"` (aus `.claude/launch.json`, startet `npm run dev` auf Port 3000).
 2. Zu `http://localhost:3000/iphone` navigieren.
-3. Demo-Login ist vorausgefüllt (`demo@lukas-technology.de`, Demo-Modus ohne `.env`). Links „Anmelden“ klicken, Auftrag öffnen → rechts erscheint die Kundenseite.
+3. Demo-Login ist vorausgefüllt (`demo@lukas-technology.de`, Demo-Modus ohne `.env`). Links „Anmelden“ klicken, Auftrag öffnen, „Losgefahren“ → rechts kommt die SMS an, Link antippen → Kundenseite.
 4. Für eine echte Handy-Prüfung einzelner Seiten zusätzlich `resize_window` mit `preset: "mobile"` und z. B. `/login` oder einen `/t/…`-Link öffnen; danach `preset: "desktop"` zurücksetzen.
 
 ## Ohne Claude (Niko selbst)

@@ -65,7 +65,7 @@
   button { display: inline-flex; align-items: center; gap: 6px; }
   header h1 { display: flex; align-items: center; gap: 6px; }
   iframe { border: 0; width: 393px; flex: 1; display: block; background: #fff; }
-  .home { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: rgba(0,0,0,.8); pointer-events: none; }
+  .home { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: rgba(0,0,0,.8); pointer-events: none; z-index: 2; }
   .hinweis { color: var(--muted); font-size: 12px; max-width: 360px; text-align: center; min-height: 17px; }
   .hinweis.neu { color: var(--marke); font-weight: 600; }
   /* Anruf-Bildschirm: am PC gibt es kein Telefon, also zeigen wir den Anruf im iPhone selbst */
@@ -86,13 +86,49 @@
   .anruf .auflegen { width: 76px; height: 76px; border-radius: 50%; border: 0; padding: 0; background: #ff3b30; color: #fff; cursor: pointer; justify-content: center; }
   .anruf .auflegen:hover { background: #e0352b; }
   .anruf .vorschau { margin-top: 18px; font-size: 12px; color: #8e8e93; max-width: 280px; }
+  /* Nachrichten-App im Kunden-iPhone: hier kommt die SMS an, der Link öffnet die Ankunftsseite */
+  .sms-app {
+    position: absolute; inset: 54px 0 0 0; z-index: 1; display: flex; flex-direction: column; background: #fff; color: #000;
+    font-family: -apple-system, "Segoe UI", sans-serif;
+  }
+  .sms-app[hidden], .zurueck[hidden], .banner[hidden] { display: none; }
+  .sms-kopf { flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0 10px; border-bottom: 1px solid #e5e5ea; background: #f9f9f9; }
+  .sms-bild { width: 46px; height: 46px; border-radius: 50%; background: #8e8e93; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .sms-name { font-size: 12px; color: #1c1c1e; }
+  .sms-liste { flex: 1; overflow-y: auto; padding: 14px 14px 8px; display: flex; flex-direction: column; gap: 4px; }
+  .sms-zeit { align-self: center; font-size: 11px; color: #8e8e93; margin: 8px 0 2px; }
+  .sms-blase {
+    align-self: flex-start; max-width: 78%; padding: 8px 13px; border-radius: 18px; background: #e9e9eb; font-size: 16px; line-height: 1.3;
+    overflow-wrap: anywhere; animation: sms-rein .25s ease-out;
+  }
+  .sms-blase a { color: #007aff; text-decoration: underline; cursor: pointer; }
+  @keyframes sms-rein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .sms-blase { animation: none; } }
+  .sms-leer { margin: auto; padding: 0 34px; text-align: center; color: #8e8e93; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .sms-leer strong { color: #3a3a3c; font-size: 16px; }
+  .sms-leer button { border-color: #d1d1d6; background: #fff; color: #007aff; }
+  .sms-eingabe { flex: none; margin: 6px 14px 26px; padding: 8px 14px; border: 1px solid #d1d1d6; border-radius: 18px; color: #c7c7cc; font-size: 15px; }
+  /* Zurück von der Ankunftsseite zu den Nachrichten (wie der kleine Rück-Link oben links in iOS) */
+  .zurueck { flex: none; background: #fff; padding: 0 10px 4px; }
+  .zurueck button { border: 0; background: none; padding: 2px 6px; gap: 2px; color: #007aff; font-size: 13px; }
+  .home-knopf { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 24px; z-index: 2; border: 0; background: none; padding: 0; cursor: pointer; }
+  /* Mitteilung oben, wenn eine SMS ankommt, während die Ankunftsseite offen ist */
+  .banner {
+    position: absolute; top: 56px; left: 10px; right: 10px; z-index: 2; display: flex; gap: 10px; align-items: center; text-align: left;
+    padding: 10px 12px; border: 0; border-radius: 22px; background: rgba(246,246,246,.97); color: #000;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25); font-family: -apple-system, "Segoe UI", sans-serif; cursor: pointer; animation: sms-rein .25s ease-out;
+  }
+  .banner .app { width: 38px; height: 38px; flex: none; border-radius: 9px; background: #34c759; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .banner .inhalt { min-width: 0; font-size: 14px; line-height: 1.25; }
+  .banner .von { font-weight: 600; }
+  .banner .text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   @media (max-width: 600px) { main { gap: 24px; } .leiste input { width: 160px; } }
 </style>
 </head>
 <body>
 <header>
   <h1><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> iPhone-Vorschau · <span>Kommt gleich</span></h1>
-  <div class="tipp">Links bedienst du die App als Handwerker. Sobald ein Kundenlink erscheint, öffnet er sich rechts automatisch.</div>
+  <div class="tipp">Links bedienst du die App als Handwerker. Rechts kommt die SMS beim Kunden an – ein Tipp auf den Link öffnet die Ankunftsseite.</div>
   <label>Größe
     <select id="groesse">
       <option value="auto">Passend</option><option value="1">100 %</option><option value="0.8">80 %</option><option value="0.65">65 %</option>
@@ -128,11 +164,19 @@
     <div class="halter"><div class="iphone"><div class="bildschirm">
       <div class="insel"></div>
       <div class="statusbar"><span class="uhr">9:41</span><span class="symbole"><svg viewBox="0 0 18 12" width="18" height="12" fill="currentColor" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx=".7"/><rect x="5" y="5.5" width="3" height="6.5" rx=".7"/><rect x="10" y="3" width="3" height="9" rx=".7"/><rect x="15" y="0" width="3" height="12" rx=".7"/></svg><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg><svg viewBox="0 0 27 13" width="27" height="13" aria-hidden="true"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="19" height="9" rx="2" fill="currentColor"/><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" opacity=".45"/></svg></span></div>
+      <div class="zurueck" id="zurueck" hidden><button id="zurueckKnopf"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Nachrichten</button></div>
       <iframe id="k" title="Kunden-iPhone"></iframe>
+      <div class="sms-app" id="smsApp">
+        <div class="sms-kopf"><div class="sms-bild"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="sms-name" id="smsName">Nachrichten</div></div>
+        <div class="sms-liste" id="smsListe"></div>
+        <div class="sms-eingabe">SMS-Nachricht</div>
+      </div>
+      <button class="banner" id="banner" hidden><span class="app"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><span class="inhalt"><span class="von" id="bannerVon"></span><br><span class="text" id="bannerText"></span></span></button>
+      <button class="home-knopf" id="homeKnopf" title="Zurück zu den Nachrichten" aria-label="Zurück zu den Nachrichten"></button>
       <div class="anruf" aria-live="polite"><div class="bild"><svg class="icon gross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="nummer"></div><div class="wer"></div><div class="zustand">Anruf …</div><div class="platz"></div><button class="auflegen" title="Auflegen" aria-label="Auflegen"><svg class="icon auflegen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button><div class="vorschau">Nur Vorschau – auf dem echten iPhone öffnet sich hier direkt die Telefon-App.</div></div>
       <div class="home"></div>
     </div></div></div>
-    <div class="hinweis" id="hinweis">Noch kein Kundenlink. Links einen Auftrag öffnen.</div>
+    <div class="hinweis" id="hinweis">Links einen Auftrag öffnen und auf „Losgefahren“ tippen.</div>
   </div>
 </main>
 
@@ -155,15 +199,27 @@
     rahmen[ziel].src = p;
   }
 
+  // Kunden-iPhone: entweder die Nachrichten-App ("sms") oder die Ankunftsseite im Browser ("web")
+  function kundeZeigen(was) {
+    $("smsApp").hidden = was !== "sms";
+    $("zurueck").hidden = was !== "web";
+    if (was === "sms") $("banner").hidden = true;
+  }
+  const kundeImWeb = () => $("smsApp").hidden;
+
   laden("h", params.get("h") || "/login");
-  if (params.get("k")) laden("k", params.get("k"));
 
   document.querySelectorAll("button[data-ziel]").forEach((b) => b.addEventListener("click", () => {
     const z = b.dataset.ziel;
+    if (z === "k") kundeZeigen("web");
     if (b.dataset.aktion === "los") laden(z, felder[z].value);
     else try { rahmen[z].contentWindow.location.reload(); } catch { laden(z, felder[z].value); }
   }));
-  Object.entries(felder).forEach(([z, f]) => f.addEventListener("keydown", (e) => { if (e.key === "Enter") laden(z, f.value); }));
+  Object.entries(felder).forEach(([z, f]) => f.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    laden(z, f.value);
+    if (z === "k") kundeZeigen("web");
+  }));
   $("beideNeu").addEventListener("click", () => Object.values(rahmen).forEach((r) => { try { r.contentWindow.location.reload(); } catch {} }));
 
   // Adresszeile mitführen + Kundenlink im Handwerker-iPhone finden
@@ -181,14 +237,125 @@
       const treffer = text.match(/https?:\/\/[^\s]+\/t\/[A-Za-z0-9_-]{6,}/);
       if (treffer && treffer[0] !== letzterLink) {
         letzterLink = treffer[0];
-        laden("k", new URL(letzterLink).pathname);
-        $("hinweis").textContent = "Neuer Kundenlink geöffnet – so sieht's der Kunde.";
-        $("hinweis").className = "hinweis neu";
-        setTimeout(() => ($("hinweis").className = "hinweis"), 3000);
+        kundenWechseln(new URL(letzterLink).pathname);
       }
     } catch {}
   }
   setInterval(beobachten, 800);
+
+  // ---- Nachrichten-App im Kunden-iPhone ----
+  let kundenPfad = null;      // "/t/<token>" des Auftrags, der links gerade offen ist
+  let gezeigteSms = null;     // IDs der schon angezeigten SMS (null = noch nichts geladen)
+  const hinweis = (text) => {
+    $("hinweis").textContent = text;
+    $("hinweis").className = "hinweis neu";
+    setTimeout(() => ($("hinweis").className = "hinweis"), 3000);
+  };
+
+  function kundenWechseln(p) {
+    kundenPfad = p;
+    gezeigteSms = null;
+    laden("k", p);            // Ankunftsseite schon mal im Hintergrund laden
+    kundeZeigen("sms");
+    smsLaden();
+  }
+
+  function seiteOeffnen(p) {
+    if (pfad(rahmen.k.getAttribute("src") || "") !== p) laden("k", p);
+    kundeZeigen("web");
+  }
+
+  // SMS-Text als Sprechblase; Links auf die Ankunftsseite werden antippbar
+  function blase(text) {
+    const b = document.createElement("div");
+    b.className = "sms-blase";
+    for (const teil of text.split(/(https?:\/\/\S+)/)) {
+      if (!/^https?:\/\//.test(teil)) { b.append(teil); continue; }
+      const a = document.createElement("a");
+      a.textContent = teil.replace(/^https?:\/\//, "");
+      a.href = teil;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        try { seiteOeffnen(new URL(teil).pathname); } catch {}
+      });
+      b.append(a);
+    }
+    return b;
+  }
+
+  function leer() {
+    const d = document.createElement("div");
+    d.className = "sms-leer";
+    const titel = document.createElement("strong");
+    titel.textContent = "Noch keine SMS";
+    const text = document.createElement("span");
+    text.textContent = kundenPfad
+      ? "Tippe links auf „Losgefahren“ – dann kommt hier die SMS beim Kunden an."
+      : "Öffne links einen Auftrag. Sobald der Handwerker losfährt, kommt hier die SMS an.";
+    d.append(titel, text);
+    if (kundenPfad) {
+      const k = document.createElement("button");
+      k.textContent = "Ankunftsseite trotzdem öffnen";
+      k.addEventListener("click", () => seiteOeffnen(kundenPfad));
+      d.append(k);
+    }
+    return d;
+  }
+
+  async function smsLaden() {
+    const liste = $("smsListe");
+    if (!kundenPfad) { if (!liste.firstChild) liste.append(leer()); return; }
+    const fuer = kundenPfad;
+    let daten;
+    try {
+      const antwort = await fetch(`/api${fuer}/sms`, { cache: "no-store" });
+      if (!antwort.ok) return;
+      daten = await antwort.json();
+    } catch { return; }
+    if (fuer !== kundenPfad) return; // inzwischen wurde ein anderer Auftrag geöffnet
+
+    $("smsName").textContent = daten.absender || "Nachrichten";
+    const ersteLadung = gezeigteSms === null;
+    if (ersteLadung) { gezeigteSms = new Set(); liste.replaceChildren(); }
+    const neue = daten.sms.filter((n) => !gezeigteSms.has(n.id));
+    if (!daten.sms.length) { liste.replaceChildren(leer()); return; }
+    if (!neue.length) return;
+    if (!gezeigteSms.size) liste.replaceChildren(); // "Noch keine SMS" entfernen
+
+    for (const n of neue) {
+      gezeigteSms.add(n.id);
+      const zeit = document.createElement("div");
+      zeit.className = "sms-zeit";
+      zeit.textContent = "Heute " + new Date(n.zeit).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+      liste.append(zeit, blase(n.text));
+    }
+    liste.scrollTop = liste.scrollHeight;
+
+    // Kommt eine SMS, während die Ankunftsseite offen ist: Mitteilung oben einblenden
+    if (!ersteLadung && kundeImWeb()) {
+      const letzte = neue[neue.length - 1];
+      $("bannerVon").textContent = daten.absender || "Nachrichten";
+      $("bannerText").textContent = letzte.text;
+      $("banner").hidden = false;
+      clearTimeout($("banner")._t);
+      $("banner")._t = setTimeout(() => ($("banner").hidden = true), 6000);
+    }
+    if (!ersteLadung) hinweis("Neue SMS beim Kunden angekommen.");
+  }
+  setInterval(smsLaden, 2000);
+  smsLaden();
+
+  // Direkt-Aufruf /iphone?k=/t/<token>: gleich die Ankunftsseite zeigen
+  if (params.get("k")) {
+    const p = pfad(params.get("k"));
+    laden("k", p);
+    kundeZeigen("web");
+    if (p.startsWith("/t/")) { kundenPfad = p; letzterLink = location.origin + p; smsLaden(); }
+  }
+
+  $("zurueckKnopf").addEventListener("click", () => kundeZeigen("sms"));
+  $("homeKnopf").addEventListener("click", () => kundeZeigen("sms"));
+  $("banner").addEventListener("click", () => kundeZeigen("sms"));
 
   // Telefon-Links (tel:) im iPhone abfangen: statt Windows-Dialog den Anruf-Bildschirm im Rahmen zeigen
   function anrufZeigen(iframe, link) {
