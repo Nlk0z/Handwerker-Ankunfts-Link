@@ -7,13 +7,14 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Steuerung } from "./Steuerung";
 import { antwortenGelesen, antwortenZumAuftrag } from "@/lib/antworten";
 import { AutoAktualisieren } from "@/components/AutoAktualisieren";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
 const ANTWORT = {
-  passt: ["👍", "Passt, bin da"],
-  anrufen: ["📞", "Bitte vorher kurz anrufen"],
-  hinweis: ["✏️", "Hinweis"],
+  passt: ["daumen", "Passt, bin da"],
+  anrufen: ["telefon", "Bitte vorher kurz anrufen"],
+  hinweis: ["stift", "Hinweis"],
 } as const;
 
 const SMS_TYP = { losgefahren: "Losgefahren", bald_da: "Gleich da (15 Min)", verspaetung: "Verspätung", anruf_wunsch: "Rückruf-Wunsch" } as const;
@@ -29,13 +30,15 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
   const sms = alleSms.filter((s) => s.typ !== "anruf_wunsch");
   const anrufSms = alleSms.find((s) => s.typ === "anruf_wunsch");
   const antworten = await antwortenZumAuftrag(a.id);
+  // Hinweis zur Rückruf-SMS nur einmal zeigen, beim neuesten Anruf-Wunsch
+  const neuesterAnruf = antworten.find((x) => x.typ === "anrufen")?.id;
   if (antworten.some((x) => !x.gelesen_am)) await antwortenGelesen(a.id);
   const link = `${await basisUrl()}/t/${a.link_token}`;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Link href={`/app?datum=${a.termin_datum}`} className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Zurück">‹</Link>
+        <Link href={`/app?datum=${a.termin_datum}`} className="flex rounded-full p-2 text-stone-500 active:bg-stone-200" aria-label="Zurück"><Icon name="pfeil-links" className="h-6 w-6" /></Link>
         <h1 className="min-w-0 flex-1 truncate text-xl font-bold">{a.kunde_name}</h1>
         <StatusBadge status={a.status} />
       </div>
@@ -47,13 +50,13 @@ export default async function AuftragSeite({ params }: { params: Promise<{ id: s
           <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-stone-500">Rückmeldung vom Kunden</h2>
           {antworten.map((x) => (
             <div key={x.id} className={`karte flex items-start gap-3 text-[15px] ${x.typ === "anrufen" ? "ring-2 ring-marke" : ""}`}>
-              <span className="text-xl leading-6">{ANTWORT[x.typ][0]}</span>
+              <Icon name={ANTWORT[x.typ][0]} className={`mt-0.5 h-5 w-5 ${x.typ === "anrufen" ? "text-marke" : "text-stone-500"}`} />
               <div className="min-w-0 flex-1">
                 <p className="break-words font-medium">{x.typ === "hinweis" ? x.text : ANTWORT[x.typ][1]}</p>
                 <p className="text-xs text-stone-500">
                   {uhrzeit(x.erstellt_am)} Uhr{!x.gelesen_am && <span className="ml-2 font-semibold text-marke">Neu</span>}
                 </p>
-                {x.typ === "anrufen" && (
+                {x.id === neuesterAnruf && (
                   <p className="mt-1 text-xs text-stone-500">
                     {anrufSms
                       ? `SMS an Monteur: ${SMS_STATUS[anrufSms.status as keyof typeof SMS_STATUS] ?? anrufSms.status} (${uhrzeit(anrufSms.gesendet_am)} Uhr)`

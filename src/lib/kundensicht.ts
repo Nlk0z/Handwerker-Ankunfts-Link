@@ -7,6 +7,7 @@ export type KundenDaten = {
   gueltig: true;
   betrieb: string;
   betriebTelefon: string | null;
+  betriebWebsite: string | null;
   monteur: string | null;
   status: "geplant" | "unterwegs" | "angekommen" | "erledigt" | "storniert";
   termin: string;
@@ -49,6 +50,7 @@ export async function kundenDaten(token: string): Promise<KundenDaten | { guelti
     gueltig: true,
     betrieb: a.betrieb_name,
     betriebTelefon: a.betrieb_telefon,
+    betriebWebsite: a.betrieb_website,
     monteur: a.mitarbeiter_name,
     status: a.status,
     termin: a.termin_datum,

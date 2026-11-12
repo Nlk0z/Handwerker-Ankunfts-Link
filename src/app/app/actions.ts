@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { abmelden, nutzerOderLogin, passwortHash } from "@/lib/auth";
 import { eins, query } from "@/lib/db";
-import { normalisiereTelefon } from "@/lib/format";
+import { normalisiereTelefon, normalisiereWebsite } from "@/lib/format";
 import {
   auftragLaden,
   basisUrl,
@@ -79,14 +79,17 @@ export async function einstellungenSpeichern(fd: FormData) {
   const n = await nutzerOderLogin();
   if (n.rolle !== "inhaber") redirect("/app/einstellungen");
   const telefon = text(fd, "telefon") ? normalisiereTelefon(text(fd, "telefon")) : null;
+  const website = text(fd, "website") ? normalisiereWebsite(text(fd, "website")) : null;
+  if (text(fd, "website") && !website) redirect("/app/einstellungen?fehler=website");
   await query(
-    `UPDATE betrieb SET name = $2, telefon = $3, sms_absender = $4, karte_aktiv = $5 WHERE id = $1`,
+    `UPDATE betrieb SET name = $2, telefon = $3, sms_absender = $4, karte_aktiv = $5, website = $6 WHERE id = $1`,
     [
       n.betrieb_id,
       text(fd, "name") || n.betrieb_name,
       telefon,
       text(fd, "sms_absender").replace(/[^A-Za-z0-9]/g, "").slice(0, 11) || null,
       fd.get("karte_aktiv") === "on",
+      website,
     ],
   );
   revalidatePath("/app", "layout");

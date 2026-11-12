@@ -80,3 +80,6 @@ ALTER TABLE mitarbeiter ADD COLUMN IF NOT EXISTS handy text;
 ALTER TABLE benachrichtigung DROP CONSTRAINT IF EXISTS benachrichtigung_typ_check;
 ALTER TABLE benachrichtigung ADD CONSTRAINT benachrichtigung_typ_check
   CHECK (typ IN ('losgefahren', 'bald_da', 'verspaetung', 'anruf_wunsch'));
+
+-- Website des Betriebs (optional): wird dem Kunden auf der Kundenseite als Link gezeigt
+ALTER TABLE betrieb ADD COLUMN IF NOT EXISTS website text;

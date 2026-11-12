@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -10,14 +10,17 @@ import path from "node:path";
  */
 type Query = <T = Record<string, unknown>>(text: string, params?: unknown[]) => Promise<T[]>;
 
-type DbState = { query: Query; demo: boolean };
+type DbState = { query: Query; demo: boolean; schemaNeu: (sql: string) => Promise<void>; schemaStand: number };
+
+const schemaPfad = () => path.join(process.cwd(), "db", "schema.sql");
 
 const g = globalThis as unknown as { __db?: Promise<DbState> };
 
 export const istDemo = () => !process.env.DATABASE_URL;
 
 async function verbinden(): Promise<DbState> {
-  const schema = readFileSync(path.join(process.cwd(), "db", "schema.sql"), "utf8");
+  const schema = readFileSync(schemaPfad(), "utf8");
+  const schemaStand = statSync(schemaPfad()).mtimeMs;
 
   if (process.env.DATABASE_URL) {
     const postgres = (await import("postgres")).default;
@@ -26,7 +29,7 @@ async function verbinden(): Promise<DbState> {
     const query: Query = async (text, params = []) =>
       (await sql.unsafe(text, params as never[])) as never;
     await sql.unsafe(schema);
-    return { query, demo: false };
+    return { query, demo: false, schemaNeu: async (t) => void (await sql.unsafe(t)), schemaStand };
   }
 
   const { PGlite } = await import("@electric-sql/pglite");
@@ -39,7 +42,7 @@ async function verbinden(): Promise<DbState> {
 
   const { seedDemo } = await import("./seed");
   await seedDemo(query);
-  return { query, demo: true };
+  return { query, demo: true, schemaNeu: async (t) => void (await pg.exec(t)), schemaStand };
 }
 
 function db() {
@@ -52,8 +55,22 @@ function db() {
   return g.__db;
 }
 
+/**
+ * Nur beim Entwickeln: Wurde db/schema.sql geändert, wird es auf der offenen Verbindung nochmal
+ * ausgeführt (alle Befehle sind wiederholbar). So braucht es nach einer Schema-Änderung keinen Neustart.
+ */
+async function schemaAktuell(state: DbState) {
+  if (process.env.NODE_ENV === "production") return;
+  const stand = statSync(schemaPfad()).mtimeMs;
+  if (stand === state.schemaStand) return;
+  state.schemaStand = stand;
+  await state.schemaNeu(readFileSync(schemaPfad(), "utf8"));
+}
+
 export async function query<T = Record<string, unknown>>(text: string, params: unknown[] = []) {
-  return (await db()).query<T>(text, params);
+  const state = await db();
+  await schemaAktuell(state);
+  return state.query<T>(text, params);
 }
 
 export async function eins<T = Record<string, unknown>>(text: string, params: unknown[] = []) {

@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import type { Status } from "@/lib/auftraege";
 import { losfahrenAktion, statusAktion, verspaetungAktion } from "../../actions";
+import { Icon } from "@/components/Icon";
 
 const FAHRZEITEN = [10, 20, 30, 45, 60];
 
@@ -33,14 +34,14 @@ export function Steuerung({ id, status, link }: { id: string; status: Status; li
             <p className="text-xs text-stone-500">Der Kunde bekommt sofort eine SMS mit Link und Ankunftszeit.</p>
           </div>
         ) : (
-          <button className="knopf-haupt min-h-16 text-xl" onClick={() => setAuswahl("los")}>🚐 Losgefahren</button>
+          <button className="knopf-haupt min-h-16 text-xl" onClick={() => setAuswahl("los")}><Icon name="transporter" className="h-7 w-7" />Losgefahren</button>
         )
       )}
 
       {status === "unterwegs" && (
         <>
           <button disabled={laeuft} className="knopf-haupt min-h-16 bg-green-600 text-xl active:bg-green-700" onClick={() => starten(() => statusAktion(id, "angekommen"))}>
-            ✅ Angekommen
+            <Icon name="haken-kreis" className="h-7 w-7" />Angekommen
           </button>
           {auswahl === "spaeter" ? (
             <div className="karte space-y-3">
@@ -48,9 +49,11 @@ export function Steuerung({ id, status, link }: { id: string; status: Status; li
               {zeitwahl(verspaetungAktion)}
             </div>
           ) : (
-            <button className="knopf-zweit" onClick={() => setAuswahl("spaeter")}>⏱ Verspätung melden</button>
+            <button className="knopf-zweit" onClick={() => setAuswahl("spaeter")}><Icon name="stoppuhr" />Verspätung melden</button>
           )}
-          <p className="px-1 text-xs text-stone-500">{standort}</p>
+          {standort && (
+            <p className="flex items-start gap-1 px-1 text-xs text-stone-500"><Icon name="standort" className="mt-px h-3.5 w-3.5" />{standort}</p>
+          )}
         </>
       )}
 
@@ -67,7 +70,7 @@ export function Steuerung({ id, status, link }: { id: string; status: Status; li
           <div className="grid grid-cols-2 gap-2">
             <button className="knopf-zweit text-sm" onClick={async () => {
               try { await navigator.clipboard.writeText(link); setKopiert(true); setTimeout(() => setKopiert(false), 2000); } catch {}
-            }}>{kopiert ? "Kopiert ✓" : "Kopieren"}</button>
+            }}>{kopiert ? <><Icon name="haken" className="h-4 w-4" />Kopiert</> : "Kopieren"}</button>
             <a className="knopf-zweit text-sm" href={link} target="_blank" rel="noreferrer">Ansehen</a>
           </div>
         </div>
@@ -94,7 +97,7 @@ function useStandortTeilen(id: string, aktiv: boolean) {
     let letzte = 0;
     const senden = (lat: number, lng: number) =>
       fetch("/api/position", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, lat, lng }) })
-        .then(() => setInfo(`📍 Standort geteilt um ${new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} – Seite offen lassen.`))
+        .then(() => setInfo(`Standort geteilt um ${new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} – Seite offen lassen.`))
         .catch(() => setInfo("Standort konnte nicht gesendet werden."));
     const w = navigator.geolocation.watchPosition(
       (p) => {

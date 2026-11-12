@@ -84,3 +84,28 @@ export function smsAbsender(eigener: string | null | undefined, betriebName: str
   const sauber = (eigener ?? "").replace(/[^A-Za-z0-9]/g, "").slice(0, 11);
   return /[A-Za-z]/.test(sauber) ? sauber : absenderAusName(betriebName);
 }
+
+/**
+ * Website-Adresse aufräumen: "www.elektro-maier.de" -> "https://www.elektro-maier.de".
+ * Gibt null zurück, wenn es keine brauchbare Web-Adresse ist.
+ */
+export function normalisiereWebsite(eingabe: string): string | null {
+  const roh = eingabe.trim();
+  if (!roh || /\s/.test(roh)) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(roh) ? roh : `https://${roh}`);
+    if (!/^https?:$/.test(u.protocol) || !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(u.hostname)) return null;
+    return (u.origin + u.pathname).replace(/\/$/, "") + u.search;
+  } catch {
+    return null;
+  }
+}
+
+/** "https://www.elektro-maier.de/kontakt" -> "elektro-maier.de" */
+export function websiteAnzeige(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}

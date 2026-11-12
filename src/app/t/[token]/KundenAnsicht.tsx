@@ -3,8 +3,9 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { KundenDaten } from "@/lib/kundensicht";
-import { datumKurz, heute, initialen, telefonAnzeige, uhrzeit, zeitfenster } from "@/lib/format";
+import { datumKurz, heute, initialen, telefonAnzeige, uhrzeit, websiteAnzeige, zeitfenster } from "@/lib/format";
 import { Logo } from "@/components/Logo";
+import { Icon, type IconName } from "@/components/Icon";
 
 const Karte = dynamic(() => import("./Karte"), {
   ssr: false,
@@ -77,13 +78,13 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
         )}
         {d.status === "angekommen" && (
           <>
-            <p className="text-5xl">👋</p>
+            <Icon name="standort" className="mx-auto h-14 w-14 text-marke" />
             <p className="mt-2 text-2xl font-bold">{wer} ist da</p>
           </>
         )}
         {d.status === "erledigt" && (
           <>
-            <p className="text-5xl">✅</p>
+            <Icon name="haken-kreis" className="mx-auto h-14 w-14 text-green-600" />
             <p className="mt-2 text-2xl font-bold">Auftrag erledigt</p>
             <p className="mt-1 text-stone-600">Vielen Dank für Ihr Vertrauen!</p>
           </>
@@ -105,7 +106,13 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
       )}
 
       {d.betriebTelefon && d.status !== "erledigt" && (
-        <a href={`tel:${d.betriebTelefon}`} className="knopf-zweit">📞 {d.betrieb} anrufen ({telefonAnzeige(d.betriebTelefon)})</a>
+        <a href={`tel:${d.betriebTelefon}`} className="knopf-zweit"><Icon name="telefon" />{d.betrieb} anrufen ({telefonAnzeige(d.betriebTelefon)})</a>
+      )}
+
+      {d.betriebWebsite && (
+        <a href={d.betriebWebsite} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 py-1 text-sm font-medium text-marke">
+          <Icon name="globus" className="h-4 w-4" />{websiteAnzeige(d.betriebWebsite)}
+        </a>
       )}
 
       <footer className="pt-4 text-center text-xs text-stone-400">
@@ -115,10 +122,10 @@ export function KundenAnsicht({ token, start }: { token: string; start: Daten })
   );
 }
 
-const ANTWORT_TEXT: Record<KundenDaten["antworten"][number]["typ"], string> = {
-  passt: "👍 Passt, ich bin da",
-  anrufen: "📞 Bitte vorher kurz anrufen",
-  hinweis: "✏️ Hinweis",
+const ANTWORT: Record<KundenDaten["antworten"][number]["typ"], { icon: IconName; text: string }> = {
+  passt: { icon: "daumen", text: "Passt, ich bin da" },
+  anrufen: { icon: "telefon", text: "Bitte vorher kurz anrufen" },
+  hinweis: { icon: "stift", text: "Hinweis schreiben" },
 };
 
 function Rueckmeldung({ token, daten, wer, onNeu }: { token: string; daten: KundenDaten; wer: string; onNeu: (d: Daten) => void }) {
@@ -170,9 +177,9 @@ function Rueckmeldung({ token, daten, wer, onNeu }: { token: string; daten: Kund
           </form>
         ) : (
           <div className="grid gap-2">
-            <button className="knopf-zweit" disabled={sendet} onClick={() => senden("passt")}>👍 Passt, ich bin da</button>
-            <button className="knopf-zweit" disabled={sendet} onClick={() => senden("anrufen")}>📞 Bitte vorher kurz anrufen</button>
-            <button className="knopf-zweit" disabled={sendet} onClick={() => setHinweisOffen(true)}>✏️ Hinweis schreiben</button>
+            <button className="knopf-zweit" disabled={sendet} onClick={() => senden("passt")}><Icon name="daumen" />{ANTWORT.passt.text}</button>
+            <button className="knopf-zweit" disabled={sendet} onClick={() => senden("anrufen")}><Icon name="telefon" />{ANTWORT.anrufen.text}</button>
+            <button className="knopf-zweit" disabled={sendet} onClick={() => setHinweisOffen(true)}><Icon name="stift" />{ANTWORT.hinweis.text}</button>
           </div>
         )
       )}
@@ -183,9 +190,14 @@ function Rueckmeldung({ token, daten, wer, onNeu }: { token: string; daten: Kund
         <ul className="space-y-2 border-t border-stone-100 pt-3">
           {daten.antworten.map((a) => (
             <li key={a.id} className="rounded-xl bg-orange-50 px-3 py-2 text-sm">
-              <div className="font-medium">{a.typ === "hinweis" ? a.text : ANTWORT_TEXT[a.typ]}</div>
-              <div className="mt-0.5 text-xs text-stone-500">
-                {uhrzeit(a.zeit)} Uhr · {a.gelesen ? "✓✓ gelesen" : "✓ übermittelt"}
+              <div className="flex items-start gap-2 font-medium">
+                <Icon name={ANTWORT[a.typ].icon} className="mt-0.5 h-4 w-4 text-stone-500" />
+                <span className="min-w-0 break-words">{a.typ === "hinweis" ? a.text : ANTWORT[a.typ].text}</span>
+              </div>
+              <div className="mt-0.5 flex items-center gap-1 text-xs text-stone-500">
+                {uhrzeit(a.zeit)} Uhr ·
+                <Icon name={a.gelesen ? "haken-doppelt" : "haken"} className={`h-3.5 w-3.5 ${a.gelesen ? "text-marke" : ""}`} />
+                {a.gelesen ? "gelesen" : "übermittelt"}
               </div>
             </li>
           ))}

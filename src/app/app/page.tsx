@@ -4,6 +4,7 @@ import { auftraegeAmTag } from "@/lib/auftraege";
 import { datumKurz, heute, uhrzeit, zeitfenster } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AutoAktualisieren } from "@/components/AutoAktualisieren";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
     <div className="space-y-4">
       <AutoAktualisieren />
       <div className="flex items-center justify-between">
-        <Link href={`/app?datum=${tagVerschieben(datum, -1)}`} className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Vorheriger Tag">‹</Link>
+        <Link href={`/app?datum=${tagVerschieben(datum, -1)}`} className="flex rounded-full p-2 text-stone-500 active:bg-stone-200" aria-label="Vorheriger Tag"><Icon name="pfeil-links" className="h-6 w-6" /></Link>
         <div className="text-center">
           <h1 className="text-xl font-bold">{istHeute ? "Heute" : datumKurz(datum)}</h1>
           <p className="text-sm text-stone-500">
@@ -32,7 +33,7 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
             {auftraege.length} {auftraege.length === 1 ? "Auftrag" : "Aufträge"}
           </p>
         </div>
-        <Link href={`/app?datum=${tagVerschieben(datum, 1)}`} className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Nächster Tag">›</Link>
+        <Link href={`/app?datum=${tagVerschieben(datum, 1)}`} className="flex rounded-full p-2 text-stone-500 active:bg-stone-200" aria-label="Nächster Tag"><Icon name="pfeil-rechts" className="h-6 w-6" /></Link>
       </div>
 
       {auftraege.length === 0 && (
@@ -51,12 +52,13 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
                 <StatusBadge status={a.status} />
               </div>
               {a.neue_antworten > 0 && (
-                <div className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${a.anruf_gewuenscht ? "bg-marke text-white" : "bg-orange-100 text-orange-800"}`}>
-                  {a.anruf_gewuenscht ? "📞 Kunde bittet um Anruf" : `💬 ${a.neue_antworten === 1 ? "Neue Rückmeldung" : `${a.neue_antworten} neue Rückmeldungen`}`}
+                <div className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${a.anruf_gewuenscht ? "bg-marke text-white" : "bg-orange-100 text-orange-800"}`}>
+                  <Icon name={a.anruf_gewuenscht ? "telefon" : "nachricht"} className="h-3.5 w-3.5" />
+                  {a.anruf_gewuenscht ? "Kunde bittet um Anruf" : a.neue_antworten === 1 ? "Neue Rückmeldung" : `${a.neue_antworten} neue Rückmeldungen`}
                 </div>
               )}
               <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="font-medium text-stone-700">🕗 {zeitfenster(a.fenster_von, a.fenster_bis)}</span>
+                <span className="flex items-center gap-1.5 font-medium text-stone-700"><Icon name="uhr" className="h-4 w-4" />{zeitfenster(a.fenster_von, a.fenster_bis)}</span>
                 {a.status === "unterwegs" && a.eta ? (
                   <span className="font-semibold text-orange-700">Ankunft ca. {uhrzeit(a.eta)}</span>
                 ) : (
@@ -69,7 +71,7 @@ export default async function Tagesliste({ searchParams }: { searchParams: Promi
       </ul>
 
       <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-lg px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 bg-gradient-to-t from-stone-100 via-stone-100/90">
-        <Link href={`/app/neu?datum=${datum}`} className="knopf-haupt text-lg">＋ Neuer Auftrag</Link>
+        <Link href={`/app/neu?datum=${datum}`} className="knopf-haupt text-lg"><Icon name="plus" className="h-6 w-6" />Neuer Auftrag</Link>
       </div>
     </div>
   );

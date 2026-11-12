@@ -69,12 +69,13 @@ export async function auftragLaden(betriebId: string, id: string) {
 export type KundenSicht = Auftrag & {
   betrieb_name: string;
   betrieb_telefon: string | null;
+  betrieb_website: string | null;
   karte_aktiv: boolean;
 };
 
 export async function auftragPerToken(token: string) {
   return eins<KundenSicht>(
-    `SELECT ${SPALTEN}, b.name AS betrieb_name, b.telefon AS betrieb_telefon, b.karte_aktiv
+    `SELECT ${SPALTEN}, b.name AS betrieb_name, b.telefon AS betrieb_telefon, b.website AS betrieb_website, b.karte_aktiv
        ${VON} JOIN betrieb b ON b.id = a.betrieb_id
       WHERE a.link_token = $1`,
     [token],

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { nutzerOderLogin } from "@/lib/auth";
 import { query } from "@/lib/db";
 import { heute } from "@/lib/format";
@@ -22,7 +23,7 @@ export default async function NeuerAuftrag({ searchParams }: { searchParams: Pro
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Link href="/app" className="rounded-full p-2 text-2xl leading-none text-stone-500 active:bg-stone-200" aria-label="Zurück">‹</Link>
+        <Link href="/app" className="flex rounded-full p-2 text-stone-500 active:bg-stone-200" aria-label="Zurück"><Icon name="pfeil-links" className="h-6 w-6" /></Link>
         <h1 className="text-xl font-bold">Neuer Auftrag</h1>
       </div>
 
